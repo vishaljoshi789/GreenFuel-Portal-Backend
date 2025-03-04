@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView, BusinessUnitViewSet, DesignationViewSet
-from .views import RegisterUserView, ForgotPasswordView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+from .views import RegisterUserView, ForgotPasswordView, BusinessUnitViewSet, DesignationViewSet
 
 router = DefaultRouter()
 router.register(r'business-units', BusinessUnitViewSet)
