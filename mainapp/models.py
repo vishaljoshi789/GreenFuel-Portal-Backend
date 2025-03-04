@@ -21,12 +21,12 @@ class Designation(models.Model):
 # Create your models here.
 class User(AbstractUser):
     email = models.EmailField(unique=True)
-    dob = models.DateField()
-    employee_code = models.CharField(max_length=255)
-    designation = models.ForeignKey(Designation, on_delete=models.CASCADE)
+    dob = models.DateField(null=True, blank=True)
+    employee_code = models.CharField(max_length=255, null=True, blank=True)
+    designation = models.ForeignKey(Designation, on_delete=models.CASCADE, null=True, blank=True)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['dob', 'employee_code', 'designation']
+    REQUIRED_FIELDS = []
 
     objects = UserManager()
 
