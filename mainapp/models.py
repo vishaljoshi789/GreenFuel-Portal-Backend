@@ -26,7 +26,7 @@ class User(AbstractUser):
     designation = models.ForeignKey(Designation, on_delete=models.CASCADE)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['dob', 'employee_code', 'department', 'designation']
+    REQUIRED_FIELDS = ['dob', 'employee_code', 'designation']
 
     objects = UserManager()
 

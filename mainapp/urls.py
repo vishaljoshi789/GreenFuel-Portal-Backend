@@ -1,6 +1,11 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView, BusinessUnitViewSet, DesignationViewSet
 from .views import RegisterUserView, ForgotPasswordView
+
+router = DefaultRouter()
+router.register(r'business-units', BusinessUnitViewSet)
+router.register(r'designations', DesignationViewSet)
 
 urlpatterns = [
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # Login to get access & refresh token

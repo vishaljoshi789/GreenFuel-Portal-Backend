@@ -7,10 +7,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
+from .models import BusinessUnit, Designation
+from rest_framework import viewsets
+from .serializers import BusinessUnitSerializer, DesignationSerializer
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
 User = get_user_model()
 
 class RegisterUserView(APIView):
+    permission_classes = [IsAdminUser]
+
     def generate_password(self, length=8):
         """Generate a random password."""
         characters = string.ascii_letters + string.digits + string.punctuation
@@ -27,7 +33,6 @@ class RegisterUserView(APIView):
                 email=serializer.validated_data['email'],
                 dob=serializer.validated_data['dob'],
                 employee_code=serializer.validated_data['employee_code'],
-                department=serializer.validated_data['department'],
                 designation=serializer.validated_data['designation'],
                 password=password  # Set the generated password
             )
@@ -42,6 +47,8 @@ class RegisterUserView(APIView):
 
 
 class ForgotPasswordView(APIView):
+    permission_classes = [IsAdminUser]
+
     def generate_password(self, length=8):
         """Generate a random password."""
         return get_random_string(length, allowed_chars=string.ascii_letters + string.digits + string.punctuation)
@@ -71,3 +78,21 @@ class ForgotPasswordView(APIView):
 
         except User.DoesNotExist:
             return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+class BusinessUnitViewSet(viewsets.ModelViewSet):
+    queryset = BusinessUnit.objects.all()
+    serializer_class = BusinessUnitSerializer
+
+    def get_permissions(self):
+            if self.request.method in ['GET']:  # Allow anyone to read
+                return [AllowAny]
+            return [IsAdminUser]
+
+class DesignationViewSet(viewsets.ModelViewSet):
+    queryset = Designation.objects.all()
+    serializer_class = DesignationSerializer
+
+    def get_permissions(self):
+            if self.request.method in ['GET']:  # Allow anyone to read
+                return [AllowAny]
+            return [IsAdminUser]
