@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import BusinessUnit, Designation
+from .models import BusinessUnit, Designation, User
 
-User = get_user_model()
+UserModel = get_user_model()
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = UserModel
         fields = ['email', 'dob', 'employee_code', 'designation']
 
 class BusinessUnitSerializer(serializers.ModelSerializer):
@@ -19,4 +19,9 @@ class DesignationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Designation
+        fields = '__all__'
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
         fields = '__all__'

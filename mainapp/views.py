@@ -7,12 +7,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
-from .models import BusinessUnit, Designation
+from .models import BusinessUnit, Designation, User
 from rest_framework import viewsets
-from .serializers import BusinessUnitSerializer, DesignationSerializer
+from .serializers import BusinessUnitSerializer, DesignationSerializer, UserInfoSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
-User = get_user_model()
+UserModel = get_user_model()
 
 class RegisterUserView(APIView):
     permission_classes = [IsAdminUser]
@@ -29,7 +29,7 @@ class RegisterUserView(APIView):
             password = self.generate_password()
 
             # Create the user
-            user = User.objects.create_user(
+            user = UserModel.objects.create_user(
                 email=serializer.validated_data['email'],
                 dob=serializer.validated_data['dob'],
                 employee_code=serializer.validated_data['employee_code'],
@@ -60,7 +60,7 @@ class ForgotPasswordView(APIView):
             return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            user = User.objects.get(email=email)
+            user = UserModel.objects.get(email=email)
 
             # Generate a new password
             new_password = self.generate_password()
@@ -76,7 +76,7 @@ class ForgotPasswordView(APIView):
 
             return Response({"message": "A new password has been sent to your email."}, status=status.HTTP_200_OK)
 
-        except User.DoesNotExist:
+        except UserModel.DoesNotExist:
             return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
 
 class BusinessUnitViewSet(viewsets.ModelViewSet):
@@ -96,3 +96,8 @@ class DesignationViewSet(viewsets.ModelViewSet):
             if self.request.method in ['GET']:  # Allow anyone to read
                 return [AllowAny]
             return [IsAdminUser]
+
+class UserInfoViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserInfoSerializer
+    permission_classes = [IsAuthenticated]
