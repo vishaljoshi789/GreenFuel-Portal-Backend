@@ -97,7 +97,11 @@ class DesignationViewSet(viewsets.ModelViewSet):
                 return [AllowAny]
             return [IsAdminUser]
 
-class UserInfoViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserInfoSerializer
+class UserInfoView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = UserInfoSerializer(user)
+        return Response(serializer.data)
+    

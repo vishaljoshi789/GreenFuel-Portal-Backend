@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-from .views import RegisterUserView, ForgotPasswordView, BusinessUnitViewSet, DesignationViewSet
+from .views import RegisterUserView, ForgotPasswordView, BusinessUnitViewSet, DesignationViewSet, UserInfoView
 
 router = DefaultRouter()
 router.register(r'business-units', BusinessUnitViewSet)
@@ -13,4 +13,5 @@ urlpatterns = [
     path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),  # Verify if a token is valid
     path('register/', RegisterUserView.as_view(), name='register'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
+    path('userInfo/', UserInfoView.as_view(), name='userInfo'),
 ]
