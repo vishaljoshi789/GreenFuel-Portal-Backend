@@ -101,7 +101,7 @@ class ApprovalProcess(models.Model):
     designation = models.ForeignKey(Designation, on_delete=models.CASCADE)
     approver = models.ForeignKey(User, on_delete=models.CASCADE)
     approved = models.BooleanField(default=False)
-    rejected = models.BooleanField(default=False)  # New field
+    rejected = models.BooleanField(default=False)
     date_approved = models.DateTimeField(null=True, blank=True)
     date_rejected = models.DateTimeField(null=True, blank=True)
 

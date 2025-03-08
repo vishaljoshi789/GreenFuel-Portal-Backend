@@ -216,22 +216,6 @@ class ApproveRequestView(APIView):
         except ApprovalProcess.DoesNotExist:
             return Response({"error": "Approval process not found"}, status=status.HTTP_400_BAD_REQUEST)
         
-    def post(self, request, form_id):
-        try:
-            approval_form = ApprovalRequestForm.objects.get(id=form_id)
-            user_designation = Designation.objects.filter(user=request.user).first()
-            if not user_designation or user_designation.level != approval_form.current_level:
-                return Response({"error": "You are not authorized to approve at this level."},
-                                status=status.HTTP_403_FORBIDDEN)
-            approval_process = ApprovalProcess.objects.get(request_form=approval_form, designation=user_designation)
-            if approval_process.approved:
-                return Response({"error": "This level is already approved."}, status=status.HTTP_400_BAD_REQUEST)
-            approval_process.approve()
-            return Response({"message": "Approval successful", "current_level": approval_form.current_level}, status=status.HTTP_200_OK)
-        except ApprovalRequestForm.DoesNotExist:
-            return Response({"error": "Request form not found"}, status=status.HTTP_404_NOT_FOUND)
-        except ApprovalProcess.DoesNotExist:
-            return Response({"error": "Approval process not found"}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, form_id):
         try:
