@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db.models import Max
 
 from mainapp.CustomUserManager import UserManager
 
@@ -60,6 +61,13 @@ class ApprovalRequestForm(models.Model):
     max_level = models.PositiveIntegerField(default=1) 
     rejected = models.BooleanField(default=False) 
     rejection_reason = models.TextField(null=True, blank=True)
+
+    def get_max_level(self):
+        max_level = Designation.objects.filter(
+            user=self.user
+        ).aggregate(Max('level'))['level__max']
+        
+        return max_level if max_level else 0
 
     def advance_level(self):
         if self.current_level < self.max_level:
