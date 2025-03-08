@@ -9,6 +9,7 @@ from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
 from .models import BusinessUnit, Designation, User
 from rest_framework import viewsets
+from django.shortcuts import get_object_or_404
 from .serializers import BusinessUnitSerializer, DesignationSerializer, UserInfoSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
@@ -79,23 +80,58 @@ class ForgotPasswordView(APIView):
         except UserModel.DoesNotExist:
             return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
 
-class BusinessUnitViewSet(viewsets.ModelViewSet):
-    queryset = BusinessUnit.objects.all()
-    serializer_class = BusinessUnitSerializer
-
+class BusinessUnitAPIView(APIView):
     def get_permissions(self):
-            if self.request.method in ['GET']:  # Allow anyone to read
-                return [AllowAny]
-            return [IsAdminUser]
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAdminUser()]
 
-class DesignationViewSet(viewsets.ModelViewSet):
-    queryset = Designation.objects.all()
-    serializer_class = DesignationSerializer
+    def get(self, request):
+        business_units = BusinessUnit.objects.all()
+        serializer = BusinessUnitSerializer(business_units, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def post(self, request):
+        serializer = BusinessUnitSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        business_unit = get_object_or_404(BusinessUnit, pk=pk)
+        serializer = BusinessUnitSerializer(business_unit, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DesignationAPIView(APIView):
     def get_permissions(self):
-            if self.request.method in ['GET']:  # Allow anyone to read
-                return [AllowAny]
-            return [IsAdminUser]
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAdminUser()]
+
+    def get(self, request):
+        designations = Designation.objects.all()
+        serializer = DesignationSerializer(designations, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = DesignationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        designation = get_object_or_404(Designation, pk=pk)
+        serializer = DesignationSerializer(designation, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserInfoView(APIView):
     permission_classes = [IsAuthenticated]
