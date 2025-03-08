@@ -52,19 +52,18 @@ class UserInfoView(APIView):
 
     def get(self, request):
         user = request.user
+        self_only = request.query_params.get('self', 'false').lower() == 'true'
+        if user.is_staff and not self_only:
+            users = User.objects.all()
+            serializer = UserInfoSerializer(users, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UserInfoSerializer(user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
-class UserView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        users = User.objects.all()
-        serializer = UserInfoSerializer(users, many=True)
-        return Response(serializer.data)
-
     def put(self, request, pk):
         user = get_object_or_404(User, pk=pk)
+        if request.user != user and not request.user.is_staff:
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
         serializer = UserInfoSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
