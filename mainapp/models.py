@@ -21,6 +21,7 @@ class Designation(models.Model):
 # Create your models here.
 class User(AbstractUser):
     email = models.EmailField(unique=True)
+    name = models.CharField(max_length=255, null=True, blank=True)
     dob = models.DateField(null=True, blank=True)
     employee_code = models.CharField(max_length=255, null=True, blank=True)
     designation = models.ForeignKey(Designation, on_delete=models.CASCADE, null=True, blank=True)
