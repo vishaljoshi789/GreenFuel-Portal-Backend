@@ -32,10 +32,18 @@ class RegisterUserView(APIView):
             # Create the user
             user = UserModel.objects.create_user(
                 email=serializer.validated_data['email'],
+                name=serializer.validated_data['name'],
                 dob=serializer.validated_data['dob'],
                 employee_code=serializer.validated_data['employee_code'],
                 designation=serializer.validated_data['designation'],
-                password=password  # Set the generated password
+                password=password,
+                business_unit=serializer.validated_data['business_unit'],
+                department=serializer.validated_data['department'],
+                contact=serializer.validated_data['contact'],
+                address=serializer.validated_data['address'],
+                city=serializer.validated_data['city'],
+                state=serializer.validated_data['state'],
+                country=serializer.validated_data['country'],
             )
 
             # Send password via email
