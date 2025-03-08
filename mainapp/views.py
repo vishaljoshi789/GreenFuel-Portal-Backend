@@ -114,7 +114,13 @@ class DesignationAPIView(APIView):
         return [IsAdminUser()]
 
     def get(self, request):
-        designations = Designation.objects.all()
+        business_unit_id = request.query_params.get('business_unit', None)
+        
+        if business_unit_id:
+            designations = Designation.objects.filter(business_unit_id=business_unit_id)
+        else:
+            designations = Designation.objects.all()
+        
         serializer = DesignationSerializer(designations, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
