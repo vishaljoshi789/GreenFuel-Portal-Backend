@@ -7,10 +7,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
-from .models import BusinessUnit, Designation, User
+from .models import BusinessUnit, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalProcess
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
-from .serializers import BusinessUnitSerializer, DesignationSerializer, UserInfoSerializer
+from .serializers import BusinessUnitSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
 UserModel = get_user_model()
@@ -118,10 +118,15 @@ class BusinessUnitAPIView(APIView):
             return [AllowAny()]
         return [IsAdminUser()]
 
-    def get(self, request):
-        business_units = BusinessUnit.objects.all()
-        serializer = BusinessUnitSerializer(business_units, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get(self, request, id=None):
+        if id:
+            business_unit = get_object_or_404(BusinessUnit, id=id)
+            serializer = BusinessUnitSerializer(business_unit)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            business_units = BusinessUnit.objects.all()
+            serializer = BusinessUnitSerializer(business_units, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         serializer = BusinessUnitSerializer(data=request.data)
@@ -145,14 +150,16 @@ class DesignationAPIView(APIView):
             return [AllowAny()]
         return [IsAdminUser()]
 
-    def get(self, request):
+    def get(self, request, id=None):
         business_unit_id = request.query_params.get('business_unit', None)
-        
+        if id:
+            designation = get_object_or_404(Designation, id=id)
+            serializer = DesignationSerializer(designation)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         if business_unit_id:
             designations = Designation.objects.filter(business_unit_id=business_unit_id)
         else:
             designations = Designation.objects.all()
-        
         serializer = DesignationSerializer(designations, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -171,3 +178,119 @@ class DesignationAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class ApprovalRequestFormAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        approval_requests = ApprovalRequestForm.objects.filter(user=request.user)
+        serializer = ApprovalRequestFormSerializer(approval_requests, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ApprovalRequestFormSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ApprovalRequestItemAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        form_id = request.query_params.get('form_id')
+        if form_id:
+            items = ApprovalRequestItem.objects.filter(form_id=form_id)
+        else:
+            items = ApprovalRequestItem.objects.all()
+        serializer = ApprovalRequestItemSerializer(items, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ApprovalRequestItemSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class ApproveRequestView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, form_id):
+        try:
+            approval_form = ApprovalRequestForm.objects.get(id=form_id)
+            user_designation = Designation.objects.filter(user=request.user).first()
+
+            if not user_designation or user_designation.level != approval_form.current_level:
+                return Response({"error": "You are not authorized to approve at this level."},
+                                status=status.HTTP_403_FORBIDDEN)
+            approval_process = ApprovalProcess.objects.get(request_form=approval_form, designation=user_designation)
+            if approval_process.approved:
+                return Response({"error": "This level is already approved."}, status=status.HTTP_400_BAD_REQUEST)
+            approval_process.approve()
+            return Response({"message": "Approval successful", "current_level": approval_form.current_level}, status=status.HTTP_200_OK)
+        except ApprovalRequestForm.DoesNotExist:
+            return Response({"error": "Request form not found"}, status=status.HTTP_404_NOT_FOUND)
+        except ApprovalProcess.DoesNotExist:
+            return Response({"error": "Approval process not found"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def post(self, request, form_id):
+        try:
+            approval_form = ApprovalRequestForm.objects.get(id=form_id)
+            user_designation = Designation.objects.filter(user=request.user).first()
+            if not user_designation or user_designation.level != approval_form.current_level:
+                return Response({"error": "You are not authorized to approve at this level."},
+                                status=status.HTTP_403_FORBIDDEN)
+            approval_process = ApprovalProcess.objects.get(request_form=approval_form, designation=user_designation)
+            if approval_process.approved:
+                return Response({"error": "This level is already approved."}, status=status.HTTP_400_BAD_REQUEST)
+            approval_process.approve()
+            return Response({"message": "Approval successful", "current_level": approval_form.current_level}, status=status.HTTP_200_OK)
+        except ApprovalRequestForm.DoesNotExist:
+            return Response({"error": "Request form not found"}, status=status.HTTP_404_NOT_FOUND)
+        except ApprovalProcess.DoesNotExist:
+            return Response({"error": "Approval process not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, form_id):
+        """Reject the request"""
+        try:
+            approval_form = ApprovalRequestForm.objects.get(id=form_id)
+            user_designation = Designation.objects.filter(user=request.user).first()
+            if not user_designation or user_designation.level != approval_form.current_level:
+                return Response({"error": "You are not authorized to reject at this level."},
+                                status=status.HTTP_403_FORBIDDEN)
+            approval_process = ApprovalProcess.objects.get(request_form=approval_form, designation=user_designation)
+            if approval_process.rejected:
+                return Response({"error": "This request has already been rejected."}, status=status.HTTP_400_BAD_REQUEST)
+            rejection_reason = request.data.get("reason", "No reason provided")
+            approval_process.reject(rejection_reason)
+            return Response({"message": "Request rejected", "rejection_reason": rejection_reason}, status=status.HTTP_200_OK)
+        except ApprovalRequestForm.DoesNotExist:
+            return Response({"error": "Request form not found"}, status=status.HTTP_404_NOT_FOUND)
+        except ApprovalProcess.DoesNotExist:
+            return Response({"error": "Approval process not found"}, status=status.HTTP_400_BAD_REQUEST)
+        
+class PendingApprovalsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Fetch forms waiting for the user's approval"""
+        try:
+            # Get the user's designation
+            user_designation = Designation.objects.filter(user=request.user).first()
+
+            if not user_designation:
+                return Response({"error": "User has no designation"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Get all approval forms waiting for this user's level
+            pending_forms = ApprovalRequestForm.objects.filter(
+                current_level=user_designation.level,
+                rejected=False,
+                current_status="In Progress"
+            )
+
+            serializer = ApprovalRequestFormSerializer(pending_forms, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

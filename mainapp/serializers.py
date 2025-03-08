@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import BusinessUnit, Designation, User
+from .models import BusinessUnit, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalProcess
 
 UserModel = get_user_model()
 
@@ -24,4 +24,19 @@ class DesignationSerializer(serializers.ModelSerializer):
 class UserInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
+        fields = '__all__'
+
+class ApprovalRequestFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApprovalRequestForm
+        fields = '__all__'
+
+class ApprovalRequestItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApprovalRequestItem
+        fields = '__all__'
+
+class ApprovalProcessSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApprovalProcess
         fields = '__all__'

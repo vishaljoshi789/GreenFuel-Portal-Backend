@@ -43,3 +43,72 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
     
+    
+class ApprovalRequestForm(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    reason = models.TextField()
+    policy_agreement = models.BooleanField(default=False)
+    initiate_dept = models.CharField(max_length=255)
+    current_status = models.CharField(max_length=255, default='Pending')
+    benefit_to_organisation = models.TextField()
+    approval_category = models.CharField(max_length=255)
+    approval_type = models.CharField(max_length=255)
+    notify_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notify_to', null=True, blank=True)
+    current_level = models.PositiveIntegerField(default=1) 
+    max_level = models.PositiveIntegerField(default=1) 
+    rejected = models.BooleanField(default=False) 
+    rejection_reason = models.TextField(null=True, blank=True)
+
+    def advance_level(self):
+        if self.current_level < self.max_level:
+            self.current_level += 1
+            self.current_status = "In Progress"
+        else:
+            self.current_status = "Approved"
+        self.save()
+
+    def reject(self, reason):
+        self.rejected = True
+        self.current_status = "Rejected"
+        self.rejection_reason = reason
+        self.save()
+    
+class ApprovalRequestItem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    quantity = models.PositiveIntegerField()
+    per_unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    sap_code = models.CharField(max_length=255)
+    date = models.DateTimeField(auto_now_add=True)
+    form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.user)
+    
+class ApprovalProcess(models.Model):
+    request_form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE)
+    designation = models.ForeignKey(Designation, on_delete=models.CASCADE)
+    approver = models.ForeignKey(User, on_delete=models.CASCADE)
+    approved = models.BooleanField(default=False)
+    rejected = models.BooleanField(default=False)  # New field
+    date_approved = models.DateTimeField(null=True, blank=True)
+    date_rejected = models.DateTimeField(null=True, blank=True)
+
+    def approve(self):
+        self.approved = True
+        self.date_approved = models.DateTimeField(auto_now=True)
+        self.save()
+        self.request_form.advance_level()
+
+    def reject(self, reason):
+        self.rejected = True
+        self.date_rejected = models.DateTimeField(auto_now=True)
+        self.save()
+        self.request_form.reject(reason)
+
+
+
+    
