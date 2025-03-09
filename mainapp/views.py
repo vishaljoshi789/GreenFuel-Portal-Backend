@@ -7,10 +7,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
-from .models import BusinessUnit, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalProcess
+from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalProcess
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
-from .serializers import BusinessUnitSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer
+from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
 UserModel = get_user_model()
@@ -126,6 +126,41 @@ class BusinessUnitAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class DepartmentAPIView(APIView):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAdminUser()]
+
+    def get(self, request, id=None):
+        business_unit_id = request.query_params.get('business_unit', None)
+        if id:
+            department = get_object_or_404(Department, id=id)
+            serializer = DepartmentSerializer(department)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        if business_unit_id:
+            departments = Department.objects.filter(business_unit_id=business_unit_id)
+        else:
+            departments = Department.objects.all()
+        serializer = DepartmentSerializer(departments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = DepartmentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        department = get_object_or_404(Department, pk=pk)
+        serializer = DepartmentSerializer(department, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
 class DesignationAPIView(APIView):
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -139,7 +174,7 @@ class DesignationAPIView(APIView):
             serializer = DesignationSerializer(designation)
             return Response(serializer.data, status=status.HTTP_200_OK)
         if business_unit_id:
-            designations = Designation.objects.filter(business_unit_id=business_unit_id)
+            designations = Designation.objects.filter(department_business_unit_id=business_unit_id)
         else:
             designations = Designation.objects.all()
         serializer = DesignationSerializer(designations, many=True)
