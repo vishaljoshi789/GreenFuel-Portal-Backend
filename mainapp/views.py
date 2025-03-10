@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
 from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalProcess
-from rest_framework import viewsets
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
@@ -218,17 +218,33 @@ class ApprovalRequestFormAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = ApprovalRequestFormSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            serializer = ApprovalRequestFormSerializer(data=request.data)
+            if serializer.is_valid():
+                form = serializer.save(user=request.user)
+
+                items_data = request.data.get("items", [])
+
+                if not items_data:
+                    transaction.set_rollback(True)
+                    return Response(
+                        {"error": "At least one item is required."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                for item_data in items_data:
+                    ApprovalRequestItem.objects.create(form=form, **item_data, user=request.user)
+
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ApprovalRequestItemAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        form_id = request.query_params.get('form_id')
+        form_id = request.query_params.get("form_id")
         if form_id:
             items = ApprovalRequestItem.objects.filter(form_id=form_id)
         else:
@@ -236,12 +252,14 @@ class ApprovalRequestItemAPIView(APIView):
         serializer = ApprovalRequestItemSerializer(items, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        serializer = ApprovalRequestItemSerializer(data=request.data, many=True)  
-        if serializer.is_valid():
-            serializer.save(user=request.user)  
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # def post(self, request):
+    #     with transaction.atomic():
+    #         serializer = ApprovalRequestItemSerializer(data=request.data, many=True)
+    #         if serializer.is_valid():
+    #             serializer.save(user=request.user)  
+    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class ApproveRequestView(APIView):
     permission_classes = [IsAuthenticated]

@@ -72,7 +72,7 @@ class ApprovalRequestForm(models.Model):
     rejection_reason = models.TextField(null=True, blank=True)
 
     @property
-    def ticket_id(self):
+    def budget_id(self):
         return str(self.id + 9999999)
 
     def get_max_level(self):
@@ -104,7 +104,7 @@ class ApprovalRequestItem(models.Model):
     per_unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     sap_code = models.CharField(max_length=255)
     date = models.DateTimeField(auto_now_add=True)
-    form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE)
+    form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE, related_name='items')
 
     def __str__(self):
         return str(self.user)
