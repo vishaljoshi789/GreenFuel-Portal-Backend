@@ -124,6 +124,11 @@ class BusinessUnitAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk):
+        business_unit = get_object_or_404(BusinessUnit, pk=pk)
+        business_unit.delete()
+        return Response({"message": "Business unit deleted"}, status=status.HTTP_200_OK)
 
 
 class DepartmentAPIView(APIView):
@@ -160,6 +165,11 @@ class DepartmentAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    def delete(self, request, pk):
+        department = get_object_or_404(Department, pk=pk)
+        department.delete()
+        return Response({"message": "Department deleted"}, status=status.HTTP_200_OK)
+    
 
 class DesignationAPIView(APIView):
     def get_permissions(self):
@@ -194,6 +204,11 @@ class DesignationAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk):
+        designation = get_object_or_404(Designation, pk=pk)
+        designation.delete()
+        return Response({"message": "Designation deleted"}, status=status.HTTP_200_OK)
 
 
 class ApprovalRequestFormAPIView(APIView):
