@@ -33,8 +33,6 @@ class RegisterUserView(APIView):
                 employee_code=serializer.validated_data['employee_code'],
                 designation=serializer.validated_data['designation'],
                 password=password,
-                business_unit=serializer.validated_data['business_unit'],
-                department=serializer.validated_data['department'],
                 contact=serializer.validated_data['contact'],
                 address=serializer.validated_data['address'],
                 city=serializer.validated_data['city'],
