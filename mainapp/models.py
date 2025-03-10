@@ -51,6 +51,7 @@ class User(AbstractUser):
     
     
 class ApprovalRequestForm(models.Model):
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE, null=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True)
@@ -69,6 +70,10 @@ class ApprovalRequestForm(models.Model):
     max_level = models.PositiveIntegerField(default=1) 
     rejected = models.BooleanField(default=False) 
     rejection_reason = models.TextField(null=True, blank=True)
+
+    @property
+    def ticket_id(self):
+        return str(self.id + 9999999)
 
     def get_max_level(self):
         max_level = Designation.objects.filter(
