@@ -98,9 +98,9 @@ class BusinessUnitAPIView(APIView):
             return [AllowAny()]
         return [IsAdminUser()]
 
-    def get(self, request, id=None):
-        if id:
-            business_unit = get_object_or_404(BusinessUnit, id=id)
+    def get(self, request, pk=None):
+        if pk:
+            business_unit = get_object_or_404(BusinessUnit, id=pk)
             serializer = BusinessUnitSerializer(business_unit)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
@@ -135,10 +135,10 @@ class DepartmentAPIView(APIView):
             return [AllowAny()]
         return [IsAdminUser()]
 
-    def get(self, request, id=None):
+    def get(self, request, pk=None):
         business_unit_id = request.query_params.get('business_unit', None)
-        if id:
-            department = get_object_or_404(Department, id=id)
+        if pk:
+            department = get_object_or_404(Department, id=pk)
             serializer = DepartmentSerializer(department)
             return Response(serializer.data, status=status.HTTP_200_OK)
         if business_unit_id:
@@ -175,10 +175,10 @@ class DesignationAPIView(APIView):
             return [AllowAny()]
         return [IsAdminUser()]
 
-    def get(self, request, id=None):
+    def get(self, request, pk=None):
         department_id = request.query_params.get('department', None)
-        if id:
-            designation = get_object_or_404(Designation, id=id)
+        if pk:
+            designation = get_object_or_404(Designation, id=pk)
             serializer = DesignationSerializer(designation)
             return Response(serializer.data, status=status.HTTP_200_OK)
         if department_id:
