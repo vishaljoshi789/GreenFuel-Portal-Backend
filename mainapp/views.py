@@ -176,13 +176,13 @@ class DesignationAPIView(APIView):
         return [IsAdminUser()]
 
     def get(self, request, id=None):
-        business_unit_id = request.query_params.get('business_unit', None)
+        department_id = request.query_params.get('department', None)
         if id:
             designation = get_object_or_404(Designation, id=id)
             serializer = DesignationSerializer(designation)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        if business_unit_id:
-            designations = Designation.objects.filter(department_business_unit_id=business_unit_id)
+        if department_id:
+            designations = Designation.objects.filter(department_id=department_id)
         else:
             designations = Designation.objects.all()
         serializer = DesignationSerializer(designations, many=True)
