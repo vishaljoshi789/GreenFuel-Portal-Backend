@@ -54,6 +54,11 @@ class UserInfoView(APIView):
         if pk:
             user = get_object_or_404(User, pk=pk)
         self_only = request.query_params.get('self', 'false').lower() == 'true'
+        designation_id = request.query_params.get('designation', None)
+        if designation_id:
+            users = User.objects.filter(designation_id=designation_id)
+            serializer = UserInfoSerializer(users, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         if not self_only:
             users = User.objects.all()
             serializer = UserInfoSerializer(users, many=True)
