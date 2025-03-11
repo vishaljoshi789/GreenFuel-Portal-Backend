@@ -33,7 +33,7 @@ class DesignationSerializer(serializers.ModelSerializer):
 class UserInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        exclude = ['password', 'groups', 'user_permissions', 'is_staff', 'is_active', 'is_superuser', 'first_name', 'last_name']
+        exclude = ['password', 'groups', 'user_permissions', 'is_active', 'is_superuser', 'first_name', 'last_name']
 
 class ApprovalRequestFormSerializer(serializers.ModelSerializer):
     budget_id = serializers.SerializerMethodField()
