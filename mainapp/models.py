@@ -75,13 +75,6 @@ class ApprovalRequestForm(models.Model):
     def budget_id(self):
         return str(self.id + 9999999)
 
-    def get_max_level(self):
-        max_level = Designation.objects.filter(
-            user=self.user
-        ).aggregate(Max('level'))['level__max']
-        
-        return max_level if max_level else 0
-
     def advance_level(self):
         if self.current_level < self.max_level:
             self.current_level += 1

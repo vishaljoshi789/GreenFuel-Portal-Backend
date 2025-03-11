@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.db.models import Max
 from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalProcess
 
 UserModel = get_user_model()
@@ -43,6 +44,15 @@ class ApprovalRequestFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApprovalRequestForm
         fields = '__all__'
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        max_level = Designation.objects.filter(user=user).aggregate(Max('level'))['level__max']
+        max_level = max_level if max_level else 0
+        validated_data['current_level'] = user.designation.level + 1
+        validated_data['max_level'] = max_level
+
+        return super().create(validated_data)
 
 class ApprovalRequestItemSerializer(serializers.ModelSerializer):
     class Meta:
