@@ -46,7 +46,10 @@ class ApprovalRequestFormSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
-        user = self.context['request'].user
+        request = self.context.get("request")
+        if not request or not request.user:
+            raise serializers.ValidationError("User not found in request context")
+        user = request.user
         max_level = Designation.objects.filter(user=user).aggregate(Max('level'))['level__max']
         max_level = max_level if max_level else 0
         validated_data['current_level'] = user.designation.level + 1

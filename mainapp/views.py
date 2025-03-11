@@ -234,7 +234,7 @@ class ApprovalRequestFormAPIView(APIView):
 
     def post(self, request):
         with transaction.atomic():
-            serializer = ApprovalRequestFormSerializer(data=request.data)
+            serializer = ApprovalRequestFormSerializer(data=request.data, context={"request": request})
             if serializer.is_valid():
                 form = serializer.save(user=request.user)
 
