@@ -31,6 +31,8 @@ class RegisterUserView(APIView):
                 name=serializer.validated_data['name'],
                 dob=serializer.validated_data['dob'],
                 employee_code=serializer.validated_data['employee_code'],
+                business_unit=serializer.validated_data['business_unit'],
+                department=serializer.validated_data['department'],
                 designation=serializer.validated_data['designation'],
                 password=password,
                 contact=serializer.validated_data['contact'],
@@ -53,6 +55,8 @@ class UserInfoView(APIView):
         user = request.user
         if pk:
             user = get_object_or_404(User, pk=pk)
+            serializer = UserInfoSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         self_only = request.query_params.get('self', 'false').lower() == 'true'
         designation_id = request.query_params.get('designation', None)
         if designation_id:
