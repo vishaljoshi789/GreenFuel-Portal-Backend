@@ -52,7 +52,7 @@ class UserInfoView(APIView):
     def get(self, request):
         user = request.user
         self_only = request.query_params.get('self', 'false').lower() == 'true'
-        if user.is_staff and not self_only:
+        if not self_only:
             users = User.objects.all()
             serializer = UserInfoSerializer(users, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
