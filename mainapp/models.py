@@ -32,6 +32,8 @@ class User(AbstractUser):
     name = models.CharField(max_length=255, null=True, blank=True)
     dob = models.DateField(null=True, blank=True)
     employee_code = models.CharField(max_length=255, null=True, blank=True)
+    business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     designation = models.ForeignKey(Designation, on_delete=models.CASCADE, null=True, blank=True)
     contact = models.CharField(max_length=255, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
@@ -76,10 +78,12 @@ class ApprovalRequestForm(models.Model):
         return str(self.id + 9999999)
 
     def advance_level(self):
-        if self.current_level < self.max_level:
+        if self.current_level < self.max_level-1:
             self.current_level += 1
             self.current_status = "In Progress"
         else:
+            if self.amount > 5000000:
+                self.current_status = "Waiting for MD Approval"
             self.current_status = "Approved"
         self.save()
 
