@@ -214,7 +214,11 @@ class DesignationAPIView(APIView):
 class ApprovalRequestFormAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, pk=None):
+        if pk:
+            approval_request = get_object_or_404(ApprovalRequestForm, id=pk)
+            serializer = ApprovalRequestFormSerializer(approval_request)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         approval_requests = ApprovalRequestForm.objects.filter(user=request.user)
         serializer = ApprovalRequestFormSerializer(approval_requests, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
