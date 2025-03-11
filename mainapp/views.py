@@ -49,8 +49,10 @@ class RegisterUserView(APIView):
 class UserInfoView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, pk=None):
         user = request.user
+        if pk:
+            user = get_object_or_404(User, pk=pk)
         self_only = request.query_params.get('self', 'false').lower() == 'true'
         if not self_only:
             users = User.objects.all()
