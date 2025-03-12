@@ -327,6 +327,7 @@ class PendingApprovalsAPIView(APIView):
             if not user_designation:
                 return Response({"error": "User has no designation"}, status=status.HTTP_400_BAD_REQUEST)
             pending_forms = ApprovalRequestForm.objects.filter(
+                department = user_designation.department,
                 current_level=user_designation.level,
                 rejected=False
             )
