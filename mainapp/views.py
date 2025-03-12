@@ -310,11 +310,7 @@ class ApprovalApproveRejectView(APIView):
 
 class ApprovalLogListView(APIView):
     def get(self, request):
-        form_id = request.query_params.get("form")
-        if form_id:
-            logs = ApprovalLog.objects.filter(approval_request_id=form_id)
-        else:
-            logs = ApprovalLog.objects.all()
+        logs = ApprovalLog.objects.filter(approver=request.user)
         serializer = ApprovalLogSerializer(logs, many=True)
         return Response(serializer.data)
 
