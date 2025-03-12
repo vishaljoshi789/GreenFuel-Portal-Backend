@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db.models import Max
-from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalProcess
+from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog
 
 UserModel = get_user_model()
 
@@ -62,7 +62,7 @@ class ApprovalRequestItemSerializer(serializers.ModelSerializer):
         model = ApprovalRequestItem
         fields = '__all__'
 
-class ApprovalProcessSerializer(serializers.ModelSerializer):
+class ApprovalLogSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ApprovalProcess
+        model = ApprovalLog
         fields = '__all__'

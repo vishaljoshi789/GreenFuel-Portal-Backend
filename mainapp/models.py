@@ -52,25 +52,28 @@ class User(AbstractUser):
         return self.email
     
     
+from django.db import models
+from django.contrib.auth.models import User
+
 class ApprovalRequestForm(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE, null=True)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, related_name='department')
-    designation = models.ForeignKey(Designation, on_delete=models.CASCADE, null=True)
+    business_unit = models.ForeignKey("BusinessUnit", on_delete=models.CASCADE, null=True)
+    department = models.ForeignKey("Department", on_delete=models.CASCADE, null=True, related_name='department')
+    designation = models.ForeignKey("Designation", on_delete=models.CASCADE, null=True)
     date = models.DateTimeField(auto_now_add=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2)
+    total = models.DecimalField(max_digits=10, decimal_places=2)  # Fixed amount reference
     reason = models.TextField()
     policy_agreement = models.BooleanField(default=False)
-    initiate_dept = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, related_name='initiate_dept')
+    initiate_dept = models.ForeignKey("Department", on_delete=models.CASCADE, null=True, related_name='initiate_dept')
     current_status = models.CharField(max_length=255, default='Pending')
     benefit_to_organisation = models.TextField()
     approval_category = models.CharField(max_length=255)
     approval_type = models.CharField(max_length=255)
     notify_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notify_to', null=True, blank=True)
-    current_level = models.PositiveIntegerField(default=1) 
-    max_level = models.PositiveIntegerField(default=1) 
-    rejected = models.BooleanField(default=False) 
+    current_level = models.PositiveIntegerField(default=1)
+    max_level = models.PositiveIntegerField(default=1)
+    rejected = models.BooleanField(default=False)
     rejection_reason = models.TextField(null=True, blank=True)
 
     @property
@@ -78,20 +81,49 @@ class ApprovalRequestForm(models.Model):
         return str(self.id + 9999999)
 
     def advance_level(self):
-        if self.current_level < self.max_level-1:
-            self.current_level += 1
-            self.current_status = "In Progress"
-        else:
-            if self.amount > 5000000:
+        if self.current_level < self.max_level:
+            self.current_level += 1 
+            if self.current_level == self.max_level and self.total > 5000000: 
                 self.current_status = "Waiting for MD Approval"
-            self.current_status = "Approved"
+            else:
+                self.current_status = "In Progress"
+        else:
+           self.current_status = "Approved"
         self.save()
 
     def reject(self, reason):
         self.rejected = True
         self.current_status = "Rejected"
+        self.current_level = self.user.designation.level
         self.rejection_reason = reason
         self.save()
+
+
+class ApprovalLog(models.Model):
+    approval_request = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE, related_name='approval_logs')
+    approver = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=[
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ], default='pending')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    comments = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        is_new = self._state.adding 
+        previous_status = None
+
+        if not is_new:
+            previous_status = ApprovalLog.objects.get(pk=self.pk).status 
+
+        super().save(*args, **kwargs)
+
+        if is_new or (previous_status != self.status):
+            if self.status == 'approved':
+                self.approval_request.advance_level()
+            elif self.status == 'rejected':
+                self.approval_request.reject(self.comments or "No reason provided")
     
 class ApprovalRequestItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -105,28 +137,3 @@ class ApprovalRequestItem(models.Model):
 
     def __str__(self):
         return str(self.user)
-    
-class ApprovalProcess(models.Model):
-    request_form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE)
-    designation = models.ForeignKey(Designation, on_delete=models.CASCADE)
-    approver = models.ForeignKey(User, on_delete=models.CASCADE)
-    approved = models.BooleanField(default=False)
-    rejected = models.BooleanField(default=False)
-    date_approved = models.DateTimeField(null=True, blank=True)
-    date_rejected = models.DateTimeField(null=True, blank=True)
-
-    def approve(self):
-        self.approved = True
-        self.date_approved = models.DateTimeField(auto_now=True)
-        self.save()
-        self.request_form.advance_level()
-
-    def reject(self, reason):
-        self.rejected = True
-        self.date_rejected = models.DateTimeField(auto_now=True)
-        self.save()
-        self.request_form.reject(reason)
-
-
-
-    

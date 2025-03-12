@@ -7,10 +7,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
-from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalProcess
+from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer
+from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
 UserModel = get_user_model()
@@ -276,46 +276,48 @@ class ApprovalRequestItemAPIView(APIView):
 
     #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class ApproveRequestView(APIView):
+class ApprovalApproveRejectView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, form_id):
-        try:
-            approval_form = ApprovalRequestForm.objects.get(id=form_id)
-            user_designation = Designation.objects.filter(user=request.user).first()
+    def post(self, request, pk, action):
+        approval_request = get_object_or_404(ApprovalRequestForm, pk=pk)
 
-            if not user_designation or user_designation.level != approval_form.current_level:
-                return Response({"error": "You are not authorized to approve at this level."},
-                                status=status.HTTP_403_FORBIDDEN)
-            approval_process = ApprovalProcess.objects.get(request_form=approval_form, designation=user_designation)
-            if approval_process.approved:
-                return Response({"error": "This level is already approved."}, status=status.HTTP_400_BAD_REQUEST)
-            approval_process.approve()
-            return Response({"message": "Approval successful", "current_level": approval_form.current_level}, status=status.HTTP_200_OK)
-        except ApprovalRequestForm.DoesNotExist:
-            return Response({"error": "Request form not found"}, status=status.HTTP_404_NOT_FOUND)
-        except ApprovalProcess.DoesNotExist:
-            return Response({"error": "Approval process not found"}, status=status.HTTP_400_BAD_REQUEST)
-        
+        if action == "approve":
+            approval_log = ApprovalLog.objects.create(
+                approval_request=approval_request,
+                approver=request.user,
+                status="approved",
+                comments=request.data.get("comments", ""),
+            )
+            approval_log.save()
+            approval_request.advance_level()
+            return Response({"message": "Approval granted"}, status=status.HTTP_200_OK)
 
-    def delete(self, request, form_id):
-        try:
-            approval_form = ApprovalRequestForm.objects.get(id=form_id)
-            user_designation = Designation.objects.filter(user=request.user).first()
-            if not user_designation or user_designation.level != approval_form.current_level:
-                return Response({"error": "You are not authorized to reject at this level."},
-                                status=status.HTTP_403_FORBIDDEN)
-            approval_process = ApprovalProcess.objects.get(request_form=approval_form, designation=user_designation)
-            if approval_process.rejected:
-                return Response({"error": "This request has already been rejected."}, status=status.HTTP_400_BAD_REQUEST)
-            rejection_reason = request.data.get("reason", "No reason provided")
-            approval_process.reject(rejection_reason)
-            return Response({"message": "Request rejected", "rejection_reason": rejection_reason}, status=status.HTTP_200_OK)
-        except ApprovalRequestForm.DoesNotExist:
-            return Response({"error": "Request form not found"}, status=status.HTTP_404_NOT_FOUND)
-        except ApprovalProcess.DoesNotExist:
-            return Response({"error": "Approval process not found"}, status=status.HTTP_400_BAD_REQUEST)
-        
+        elif action == "reject":
+            rejection_reason = request.data.get("comments", "No reason provided")
+            approval_log = ApprovalLog.objects.create(
+                approval_request=approval_request,
+                approver=request.user,
+                status="rejected",
+                comments=rejection_reason,
+            )
+            approval_log.save()
+            approval_request.reject(rejection_reason)
+            return Response({"message": "Approval request rejected"}, status=status.HTTP_200_OK)
+
+        return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ApprovalLogListView(APIView):
+    def get(self, request):
+        form_id = request.query_params.get("form")
+        if form_id:
+            logs = ApprovalLog.objects.filter(approval_request_id=form_id)
+        else:
+            logs = ApprovalLog.objects.all()
+        serializer = ApprovalLogSerializer(logs, many=True)
+        return Response(serializer.data)
+
 class PendingApprovalsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -326,8 +328,7 @@ class PendingApprovalsAPIView(APIView):
                 return Response({"error": "User has no designation"}, status=status.HTTP_400_BAD_REQUEST)
             pending_forms = ApprovalRequestForm.objects.filter(
                 current_level=user_designation.level,
-                rejected=False,
-                current_status="In Progress"
+                rejected=False
             )
             serializer = ApprovalRequestFormSerializer(pending_forms, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
