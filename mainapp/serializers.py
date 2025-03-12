@@ -50,7 +50,7 @@ class ApprovalRequestFormSerializer(serializers.ModelSerializer):
         if not request or not request.user:
             raise serializers.ValidationError("User not found in request context")
         user = request.user
-        max_level = Designation.objects.filter(user=user).aggregate(Max('level'))['level__max']
+        max_level = Designation.objects.filter(department=user.department).aggregate(Max('level'))['level__max']
         max_level = max_level if max_level else 0
         validated_data['current_level'] = user.designation.level + 1
         validated_data['max_level'] = max_level
