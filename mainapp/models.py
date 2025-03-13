@@ -20,7 +20,7 @@ class Department(models.Model):
 class Designation(models.Model):
     name = models.CharField(max_length=300)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True)
-    level = models.PositiveIntegerField()
+    # level = models.PositiveIntegerField()
 
     def __str__(self):
         return str(self.name)
@@ -50,6 +50,16 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+    
+class Approver(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    designation = models.ForeignKey(Designation, on_delete=models.CASCADE)
+    level = models.PositiveIntegerField()
+
+    def __str__(self):
+        return str(self.user)
 
 class ApprovalRequestForm(models.Model):
     id = models.AutoField(primary_key=True)

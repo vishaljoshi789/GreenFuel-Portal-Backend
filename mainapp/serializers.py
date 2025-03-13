@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db.models import Max
-from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog
+from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver
 
 UserModel = get_user_model()
 
@@ -34,6 +34,11 @@ class UserInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ['password', 'groups', 'user_permissions', 'is_active', 'is_superuser', 'first_name', 'last_name']
+
+class ApproverSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Approver
+        fields = '__all__'
 
 class ApprovalRequestFormSerializer(serializers.ModelSerializer):
     budget_id = serializers.SerializerMethodField()
