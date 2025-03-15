@@ -23,5 +23,4 @@ urlpatterns = [
     path('approval-requests/<int:pk>/<str:action>/', ApprovalApproveRejectView.as_view(), name='approval-requests-approve-reject'),
     path('approval-logs/', ApprovalLogListView.as_view(), name='approval-logs-list'),
     path('pending-approvals/', PendingApprovalsAPIView.as_view(), name='pending-approvals'),
-
 ]

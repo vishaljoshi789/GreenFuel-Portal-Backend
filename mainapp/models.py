@@ -55,7 +55,6 @@ class Approver(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    designation = models.ForeignKey(Designation, on_delete=models.CASCADE)
     level = models.PositiveIntegerField()
 
     def __str__(self):
