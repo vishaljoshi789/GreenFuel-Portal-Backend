@@ -223,11 +223,15 @@ class ApproverAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
+        department = request.query_params.get('department', None)
         if pk:
             approver = get_object_or_404(Approver, id=pk)
             serializer = ApproverSerializer(approver)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        approvers = Approver.objects.all()
+        if department:
+            approvers = Approver.objects.filter(department_id=department)
+        else:
+            approvers = Approver.objects.all()
         serializer = ApproverSerializer(approvers, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
