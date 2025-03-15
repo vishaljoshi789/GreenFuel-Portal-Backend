@@ -67,7 +67,7 @@ class ApprovalRequestForm(models.Model):
     department = models.ForeignKey("Department", on_delete=models.CASCADE, null=True, related_name='department')
     designation = models.ForeignKey("Designation", on_delete=models.CASCADE, null=True)
     date = models.DateTimeField(auto_now_add=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2)  # Fixed amount reference
+    total = models.DecimalField(max_digits=10, decimal_places=2)
     reason = models.TextField()
     policy_agreement = models.BooleanField(default=False)
     initiate_dept = models.ForeignKey("Department", on_delete=models.CASCADE, null=True, related_name='initiate_dept')
@@ -88,10 +88,7 @@ class ApprovalRequestForm(models.Model):
     def advance_level(self):
         if self.current_level < self.max_level:
             self.current_level += 1 
-            if self.current_level == self.max_level and self.total > 5000000: 
-                self.current_status = "Waiting for MD Approval"
-            else:
-                self.current_status = "In Progress"
+            self.current_status = "Pending"
         else:
            self.current_status = "Approved"
         self.save()
@@ -99,7 +96,7 @@ class ApprovalRequestForm(models.Model):
     def reject(self, reason):
         self.rejected = True
         self.current_status = "Rejected"
-        self.current_level = self.user.designation.level
+        self.current_level = -1
         self.rejection_reason = reason
         self.save()
 
