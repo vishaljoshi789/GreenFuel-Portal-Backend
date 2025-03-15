@@ -7,10 +7,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
-from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver
+from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer
+from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
 UserModel = get_user_model()
@@ -43,7 +43,7 @@ class RegisterUserView(APIView):
             )
             subject = "Your Account Credentials"
             message = f"Hello {user.email},\n\nYour account has been created successfully!\nYour password is: {password}"
-            send_mail(subject, message, 'your-email@gmail.com', [user.email])
+            send_mail(subject, message, [user.email])
             return Response({"message": "User registered successfully! Check your email for the password."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -98,7 +98,7 @@ class ForgotPasswordView(APIView):
             user.save()
             subject = "Password Reset Request"
             message = f"Hello {user.email},\n\nYour new password is: {new_password}"
-            send_mail(subject, message, 'your-email@gmail.com', [user.email])
+            send_mail(subject, message, [user.email])
             return Response({"message": "A new password has been sent to your email."}, status=status.HTTP_200_OK)
         except UserModel.DoesNotExist:
             return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
@@ -360,3 +360,34 @@ class PendingApprovalsAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class NotificationAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        notifications = Notification.objects.filter(user=request.user)
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, email=None):
+        if email:
+            user = get_object_or_404(User, email=email)
+        else:
+            user = request.user
+        serializer = NotificationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def send_notification(self, user, message):
+        Notification.objects.create(user=user, message=message)
+        subject = "Green Fuel"
+        send_mail(subject, message, [user.email])
+        return Response({"message": "Notification has been sent"}, status=status.HTTP_200_OK)
+    
+
+    def delete(self, request, pk):
+        notification = get_object_or_404(Notification, pk=pk)
+        notification.delete()
+        return Response({"message": "Notification deleted"}, status=status.HTTP_200_OK)
