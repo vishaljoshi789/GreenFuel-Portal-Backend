@@ -43,7 +43,7 @@ class RegisterUserView(APIView):
             )
             subject = "Your Account Credentials"
             message = f"Hello {user.email},\n\nYour account has been created successfully!\nYour password is: {password}"
-            send_mail(subject, message, [user.email])
+            send_mail(subject, message, "admin@greenfuelenergy.in", [user.email])
             return Response({"message": "User registered successfully! Check your email for the password."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -98,7 +98,7 @@ class ForgotPasswordView(APIView):
             user.save()
             subject = "Password Reset Request"
             message = f"Hello {user.email},\n\nYour new password is: {new_password}"
-            send_mail(subject, message, [user.email])
+            send_mail(subject, message, "admin@greenfuelenergy.in", [user.email])
             return Response({"message": "A new password has been sent to your email."}, status=status.HTTP_200_OK)
         except UserModel.DoesNotExist:
             return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
@@ -383,7 +383,7 @@ class NotificationAPIView(APIView):
     def send_notification(self, user, message):
         Notification.objects.create(user=user, message=message)
         subject = "Green Fuel"
-        send_mail(subject, message, [user.email])
+        send_mail(subject, message, "admin@greenfuelenergy.in", [user.email])
         return Response({"message": "Notification has been sent"}, status=status.HTTP_200_OK)
     
 
