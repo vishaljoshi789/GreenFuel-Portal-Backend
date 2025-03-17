@@ -71,7 +71,7 @@ class ApprovalRequestForm(models.Model):
     reason = models.TextField()
     policy_agreement = models.BooleanField(default=False)
     initiate_dept = models.ForeignKey("Department", on_delete=models.CASCADE, null=True, related_name='initiate_dept')
-    current_status = models.CharField(max_length=255, default='Pending')
+    status = models.CharField(max_length=255, default='Pending')
     benefit_to_organisation = models.TextField()
     approval_category = models.CharField(max_length=255)
     approval_type = models.CharField(max_length=255)

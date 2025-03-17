@@ -348,12 +348,12 @@ class PendingApprovalsAPIView(APIView):
 
     def get(self, request):
         try:
-            user_designation = Designation.objects.filter(user=request.user).first()
-            if not user_designation:
-                return Response({"error": "User has no designation"}, status=status.HTTP_400_BAD_REQUEST)
+            user_approver = Approver.objects.filter(user=request.user).first()
+            if not user_approver:
+                return Response({"error": "User is not any approver"}, status=status.HTTP_400_BAD_REQUEST)
             pending_forms = ApprovalRequestForm.objects.filter(
-                department = user_designation.department,
-                current_level=user_designation.level,
+                department = user_approver.department,
+                current_level=user_approver.level,
                 rejected=False
             )
             serializer = ApprovalRequestFormSerializer(pending_forms, many=True)
