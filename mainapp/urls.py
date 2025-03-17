@@ -13,7 +13,6 @@ urlpatterns = [
     path('departments/', DepartmentAPIView.as_view(), name='department-list'),
     path('departments/<int:pk>/', DepartmentAPIView.as_view(), name='department-update'),
     path('register/', RegisterUserView.as_view(), name='register'),
-    path('register/<int:pk>', RegisterUserView.as_view(), name='register-update'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
     path('userInfo/', UserInfoView.as_view(), name='userInfo'),
     path('userInfo/<int:pk>/', UserInfoView.as_view(), name='userInfo-update'),
