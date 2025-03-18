@@ -76,7 +76,7 @@ class ApprovalRequestForm(models.Model):
     approval_category = models.CharField(max_length=255)
     approval_type = models.CharField(max_length=255)
     notify_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notify_to', null=True, blank=True)
-    current_level = models.PositiveIntegerField(default=1)
+    current_level = models.IntegerField(default=1)
     max_level = models.PositiveIntegerField(default=1)
     rejected = models.BooleanField(default=False)
     rejection_reason = models.TextField(null=True, blank=True)
@@ -96,7 +96,7 @@ class ApprovalRequestForm(models.Model):
     def reject(self, reason):
         self.rejected = True
         self.current_status = "Rejected"
-        self.current_level = -1
+        self.current_level = 0
         self.rejection_reason = reason
         self.save()
 
