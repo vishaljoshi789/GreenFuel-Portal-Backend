@@ -311,6 +311,18 @@ class ApprovalApproveRejectView(APIView):
     def post(self, request, pk, action):
         approval_request = get_object_or_404(ApprovalRequestForm, pk=pk)
 
+        if not Approver.objects.filter(user=request.user).exists():
+            return Response({"error": "User is not an approver"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if approval_request.rejected:
+            return Response({"error": "Approval request has been rejected"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if approval_request.department != Approver.objects.filter(user=request.user).first().department:
+            return Response({"error": "User is not the approver of this request"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if approval_request.current_level != Approver.objects.filter(user=request.user).first().level:
+            return Response({"error": "User is not the approver of this request"}, status=status.HTTP_400_BAD_REQUEST)
+
         if action == "approve":
             approval_log = ApprovalLog.objects.create(
                 approval_request=approval_request,
@@ -319,7 +331,6 @@ class ApprovalApproveRejectView(APIView):
                 comments=request.data.get("comments", ""),
             )
             approval_log.save()
-            approval_request.advance_level()
             return Response({"message": "Approval granted"}, status=status.HTTP_200_OK)
 
         elif action == "reject":
@@ -339,7 +350,11 @@ class ApprovalApproveRejectView(APIView):
 
 class ApprovalLogListView(APIView):
     def get(self, request):
-        logs = ApprovalLog.objects.filter(approver=request.user)
+        form = request.query_params.get('form', None)
+        if form:
+            logs = ApprovalLog.objects.filter(approval_request_id=form)
+        else:
+            logs = ApprovalLog.objects.filter(approver=request.user)
         serializer = ApprovalLogSerializer(logs, many=True)
         return Response(serializer.data)
 
