@@ -265,6 +265,9 @@ class ApprovalRequestFormAPIView(APIView):
 
     def post(self, request):
         with transaction.atomic():
+            if not request.user.is_budget_requester:
+                return Response({"error": "User is not a budget requester"}, status=status.HTTP_400_BAD_REQUEST)
+
             serializer = ApprovalRequestFormSerializer(data=request.data)
             if serializer.is_valid():
                 form = serializer.save(user=request.user)

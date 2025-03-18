@@ -43,7 +43,6 @@ class User(AbstractUser):
     status = models.BooleanField(default=True)
     is_budget_requester = models.BooleanField(default=False)
 
-
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
