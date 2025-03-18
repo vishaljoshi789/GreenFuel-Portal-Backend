@@ -41,6 +41,7 @@ class RegisterUserView(APIView):
                 city=serializer.validated_data['city'],
                 state=serializer.validated_data['state'],
                 country=serializer.validated_data['country'],
+                is_budget_requester=serializer.validated_data.get('is_budget_requester', False)
             )
             subject = "Your Account Credentials"
             message = f"Hello {user.email},\n\nYour account has been created successfully!\nYour password is: {password}"
