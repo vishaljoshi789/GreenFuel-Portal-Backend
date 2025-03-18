@@ -9,6 +9,7 @@ from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
 from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
@@ -257,7 +258,7 @@ class ApprovalRequestFormAPIView(APIView):
             approval_request = get_object_or_404(ApprovalRequestForm, id=pk)
             serializer = ApprovalRequestFormSerializer(approval_request)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        approval_requests = ApprovalRequestForm.objects.filter(user=request.user)
+        approval_requests = ApprovalRequestForm.objects.filter(Q(user=request.user) | Q(notify_to=request.user))
         serializer = ApprovalRequestFormSerializer(approval_requests, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
