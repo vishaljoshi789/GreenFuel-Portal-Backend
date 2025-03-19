@@ -7,11 +7,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
-from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification
+from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer
+from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, ApprovalRequestCategorySerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
 UserModel = get_user_model()
@@ -249,7 +249,27 @@ class ApproverAPIView(APIView):
         approver.delete()
         return Response({"message": "Approver deleted"}, status=status.HTTP_200_OK)
     
-
+class ApprovalRequestCategoryAPIView(APIView):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [IsAuthenticated()]
+        return [IsAdminUser()]
+    
+    def get(self, request, pk=None):
+        if pk:
+            category = get_object_or_404(ApprovalRequestCategory, id=pk)
+            serializer = ApprovalRequestCategorySerializer(category)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        category = ApprovalRequestCategory.objects.all()
+        serializer = ApprovalRequestCategorySerializer(category, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = ApprovalRequestCategorySerializer(data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ApprovalRequestFormAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -287,7 +307,6 @@ class ApprovalRequestFormAPIView(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class ApprovalRequestItemAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -373,9 +392,8 @@ class PendingApprovalsAPIView(APIView):
                 return Response({"error": "User is not any approver"}, status=status.HTTP_400_BAD_REQUEST)
             pending_forms = ApprovalRequestForm.objects.filter(
                 department = user_approver.department,
-                current_level=user_approver.level,
                 rejected=False
-            )
+            ).filter(Q(current_form_level=user_approver.level) | Q(current_category_level = user_approver.level))
             serializer = ApprovalRequestFormSerializer(pending_forms, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:

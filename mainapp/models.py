@@ -51,8 +51,13 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
     
+class ApprovalRequestCategory(models.Model):
+    name = models.CharField(max_length=300, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
 class Approver(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    approver_request_category = models.ForeignKey(ApprovalRequestCategory, on_delete=models.CASCADE, null=True)
     business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     level = models.PositiveIntegerField()
@@ -76,27 +81,35 @@ class ApprovalRequestForm(models.Model):
     approval_category = models.CharField(max_length=255)
     approval_type = models.CharField(max_length=255)
     notify_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notify_to', null=True, blank=True)
-    current_level = models.IntegerField(default=1)
-    max_level = models.PositiveIntegerField(default=1)
+    current_category_level = models.IntegerField(default=1)
+    current_form_level = models.IntegerField(default=0)
+    form_max_level = models.PositiveIntegerField(default=1)
+    category_max_level = models.PositiveIntegerField(default=1)
     rejected = models.BooleanField(default=False)
     rejection_reason = models.TextField(null=True, blank=True)
 
     @property
     def budget_id(self):
         return str(self.id + 9999999)
+    
 
-    def advance_level(self):
-        if self.current_level < self.max_level:
-            self.current_level += 1 
-            self.current_status = "Pending"
+    def advance_form_level(self):
+        if self.current_category_level < self.category_max_level:
+            self.current_category_level += 1
+        elif self.current_category_level == self.category_max_level:
+            self.current_form_level = 1
+            self.current_category_level = 0
+        elif self.current_form_level < self.form_max_level:
+            self.current_form_level += 1 
         else:
-           self.current_status = "Approved"
+           self.status = "Approved"
         self.save()
 
     def reject(self, reason):
         self.rejected = True
-        self.current_status = "Rejected"
-        self.current_level = 0
+        self.status = "Rejected"
+        self.current_form_level = 0
+        self.current_category_level = 0
         self.rejection_reason = reason
         self.save()
 
@@ -109,7 +122,7 @@ class ApprovalLog(models.Model):
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
     ], default='pending')
-    timestamp = models.DateTimeField(auto_now_add=True)
+    approved_at = models.DateTimeField(auto_now_add=True)
     comments = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
@@ -123,7 +136,7 @@ class ApprovalLog(models.Model):
 
         if is_new or (previous_status != self.status):
             if self.status == 'approved':
-                self.approval_request.advance_level()
+                self.approval_request.advance_form_level()
             elif self.status == 'rejected':
                 self.approval_request.reject(self.comments or "No reason provided")
     
