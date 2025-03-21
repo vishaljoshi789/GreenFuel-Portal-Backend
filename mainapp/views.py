@@ -270,6 +270,19 @@ class ApprovalRequestCategoryAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, pk):
+        category = get_object_or_404(ApprovalRequestCategory, pk=pk)
+        serializer = ApprovalRequestCategorySerializer(category, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk):
+        category = get_object_or_404(ApprovalRequestCategory, pk=pk)
+        category.delete()
+        return Response({"message": "Category deleted"}, status=status.HTTP_200_OK)
 
 class ApprovalRequestFormAPIView(APIView):
     permission_classes = [IsAuthenticated]
