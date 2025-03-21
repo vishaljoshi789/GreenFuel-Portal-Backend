@@ -278,7 +278,7 @@ class ApprovalRequestCategoryAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def put(self, request, pk):
-        category = get_object_or_404(ApprovalRequestCategory, pk=pk)
+        category = get_object_or_404(ApprovalRequestCategory, id=pk)
         serializer = ApprovalRequestCategorySerializer(category, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -286,7 +286,7 @@ class ApprovalRequestCategoryAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, pk):
-        category = get_object_or_404(ApprovalRequestCategory, pk=pk)
+        category = get_object_or_404(ApprovalRequestCategory, id=pk)
         category.delete()
         return Response({"message": "Category deleted"}, status=status.HTTP_200_OK)
 
