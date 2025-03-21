@@ -230,8 +230,13 @@ class ApproverAPIView(APIView):
             approver = get_object_or_404(Approver, id=pk)
             serializer = ApproverSerializer(approver)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        type = request.query_params.get('type', None)
         if department:
             approvers = Approver.objects.filter(department_id=department)
+        elif type == 'approver':
+            approvers = Approver.objects.filter(approver_request_category__isnull=True)
+        elif type == 'category':
+            approvers = Approver.objects.filter(approver_request_category__isnull=False)
         else:
             approvers = Approver.objects.all()
         serializer = ApproverSerializer(approvers, many=True)
@@ -260,6 +265,7 @@ class ApprovalRequestCategoryAPIView(APIView):
             category = get_object_or_404(ApprovalRequestCategory, id=pk)
             serializer = ApprovalRequestCategorySerializer(category)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        
         category = ApprovalRequestCategory.objects.all()
         serializer = ApprovalRequestCategorySerializer(category, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
