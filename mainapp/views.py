@@ -357,19 +357,21 @@ class ApprovalApproveRejectView(APIView):
     def post(self, request, pk, action):
         approval_request = get_object_or_404(ApprovalRequestForm, pk=pk)
 
+        user_approvers = Approver.objects.filter(user=request.user)
+
         if not Approver.objects.filter(user=request.user).exists():
             return Response({"error": "User is not an approver"}, status=status.HTTP_400_BAD_REQUEST)
         
         if approval_request.rejected:
             return Response({"error": "Approval request has been rejected"}, status=status.HTTP_400_BAD_REQUEST)
         
-        if approval_request.department != Approver.objects.filter(user=request.user).first().department:
+        if not any(approval_request.department == approver.department for approver in user_approvers):
             return Response({"error": "User is not the approver of this request"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if approval_request.current_form_level == 0 and approval_request.current_category_level != Approver.objects.filter(user=request.user).first().level:
-            return Response({"error": "User is not the approver of this request"}, status=status.HTTP_400_BAD_REQUEST)
-        elif approval_request.current_form_level != Approver.objects.filter(user=request.user).first().level:
-            return Response({"error": "User is not the approver of this request"}, status=status.HTTP_400_BAD_REQUEST)
+        # if approval_request.current_form_level == 0 and not any(approval_request.current_category_level == approver.level and approval_request.form_category == approver.approver_request_category for approver in user_approvers):
+        #     return Response({"error": "User is not the approver of this request"}, status=status.HTTP_400_BAD_REQUEST)
+        # if not any(approval_request.current_form_level == approver.level for approver in user_approvers):
+        #     return Response({"error": "User is not the approver of this request"}, status=status.HTTP_400_BAD_REQUEST)
         if action == "approve":
             approval_log = ApprovalLog.objects.create(
                 approval_request=approval_request,
@@ -410,10 +412,20 @@ class PendingApprovalsAPIView(APIView):
 
     def get(self, request):
         try:
-            user_approver = Approver.objects.filter(user=request.user).first()
-            if not user_approver:
-                return Response({"error": "User is not any approver"}, status=status.HTTP_400_BAD_REQUEST)
-            pending_forms = ApprovalRequestForm.objects.filter(Q(concerned_department = user_approver.department, current_form_level=user_approver.level) | Q(current_category_level = user_approver.level, form_category = user_approver.approver_request_category, department = user_approver.department), rejected = False)
+            user_approvers = Approver.objects.filter(user=request.user)
+            query = Q()
+
+            for approver in user_approvers:
+                query |= Q(
+                    concerned_department=approver.department,
+                    current_form_level=approver.level
+                ) | Q(
+                    current_category_level=approver.level,
+                    form_category=approver.approver_request_category,
+                    department=approver.department
+                )
+
+            pending_forms = ApprovalRequestForm.objects.filter(query, rejected=False).distinct()
             serializer = ApprovalRequestFormSerializer(pending_forms, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
