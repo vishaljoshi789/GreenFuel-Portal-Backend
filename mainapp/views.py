@@ -250,8 +250,16 @@ class ApproverAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    def put(self, request, pk):
+        approver = get_object_or_404(Approver, id=pk)
+        serializer = ApproverSerializer(approver, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     def delete(self, request, pk):
-        approver = get_object_or_404(Approver, pk=pk)
+        approver = get_object_or_404(Approver, id=pk)
         approver.delete()
         return Response({"message": "Approver deleted"}, status=status.HTTP_200_OK)
     
@@ -358,7 +366,7 @@ class ApprovalApproveRejectView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk, action):
-        approval_request = get_object_or_404(ApprovalRequestForm, pk=pk)
+        approval_request = get_object_or_404(ApprovalRequestForm, id=pk)
 
         user_approvers = Approver.objects.filter(user=request.user)
 
