@@ -10,6 +10,7 @@ from django.utils.crypto import get_random_string
 from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory
 from django.db import transaction
 from django.db.models import Q
+from django.db.models import Max
 from django.shortcuts import get_object_or_404
 from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, ApprovalRequestCategorySerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
@@ -309,7 +310,7 @@ class ApprovalRequestFormAPIView(APIView):
 
             serializer = ApprovalRequestFormSerializer(data=request.data)
             if serializer.is_valid():
-                form = serializer.save(user=request.user)
+                form = serializer.save(user=request.user, max_category_level = Approver.objects.filter(approver_request_category = serializer.validated_data['form_category'], department = request.user.department).aggregate(Max('level'))['level__max'], max_form_level = Approver.objects.filter(department = serializer.validated_data['concerned_department'], approver_request_category__isnull = True).aggregate(Max('level'))['level__max'])
 
                 items_data = request.data.get("items", [])
 
