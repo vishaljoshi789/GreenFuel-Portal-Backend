@@ -366,7 +366,7 @@ class ApprovalApproveRejectView(APIView):
         if approval_request.department != Approver.objects.filter(user=request.user).first().department:
             return Response({"error": "User is not the approver of this request"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if approval_request.current_level != Approver.objects.filter(user=request.user).first().level:
+        if approval_request.current_form_level != Approver.objects.filter(user=request.user).first().level:
             return Response({"error": "User is not the approver of this request"}, status=status.HTTP_400_BAD_REQUEST)
 
         if action == "approve":
