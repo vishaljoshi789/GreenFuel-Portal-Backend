@@ -17,6 +17,7 @@ urlpatterns = [
     path('userInfo/', UserInfoView.as_view(), name='userInfo'),
     path('userInfo/<int:pk>/', UserInfoView.as_view(), name='userInfo-update'),
     path('approver/', ApproverAPIView.as_view(), name='approver'),
+    path('approver/<int:pk>/', ApproverAPIView.as_view(), name='approver'),
     path('approval-request-category/', ApprovalRequestCategoryAPIView.as_view(), name='approver-request-category'),
     path('approval-request-category/<int:pk>/', ApprovalRequestCategoryAPIView.as_view(), name='approver-request-category'),
     path('approval-requests/', ApprovalRequestFormAPIView.as_view(), name='approval-requests'),
