@@ -413,10 +413,7 @@ class PendingApprovalsAPIView(APIView):
             user_approver = Approver.objects.filter(user=request.user).first()
             if not user_approver:
                 return Response({"error": "User is not any approver"}, status=status.HTTP_400_BAD_REQUEST)
-            pending_forms = ApprovalRequestForm.objects.filter(
-                Q(department = user_approver.department) | Q(concerned_department = user_approver.department),
-                rejected=False
-            ).filter(Q(current_form_level=user_approver.level) | Q(current_category_level = user_approver.level, form_category = user_approver.approver_request_category))
+            pending_forms = ApprovalRequestForm.objects.filter(Q(concerned_department = user_approver.department, current_form_level=user_approver.level) | Q(current_category_level = user_approver.level, form_category = user_approver.approver_request_category, department = user_approver.department), rejected = False)
             serializer = ApprovalRequestFormSerializer(pending_forms, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
