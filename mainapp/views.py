@@ -299,7 +299,10 @@ class ApprovalRequestFormAPIView(APIView):
             approval_request = get_object_or_404(ApprovalRequestForm, id=pk)
             serializer = ApprovalRequestFormSerializer(approval_request)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        approval_requests = ApprovalRequestForm.objects.filter(Q(user=request.user) | Q(notify_to=request.user))
+        if request.user.is_staff:
+            approval_requests = ApprovalRequestForm.objects.all()
+        else:
+            approval_requests = ApprovalRequestForm.objects.filter(Q(user=request.user) | Q(notify_to=request.user))
         serializer = ApprovalRequestFormSerializer(approval_requests, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
