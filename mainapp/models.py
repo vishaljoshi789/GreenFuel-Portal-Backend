@@ -42,6 +42,7 @@ class User(AbstractUser):
     country = models.CharField(max_length=255, null=True, blank=True)
     status = models.BooleanField(default=True)
     is_budget_requester = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

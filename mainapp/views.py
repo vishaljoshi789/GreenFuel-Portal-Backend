@@ -67,7 +67,7 @@ class UserInfoView(APIView):
             serializer = UserInfoSerializer(users, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         if not self_only:
-            users = User.objects.all()
+            users = User.objects.all().filter(is_deleted=False)
             serializer = UserInfoSerializer(users, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UserInfoSerializer(user)
