@@ -85,8 +85,8 @@ class ApprovalRequestForm(models.Model):
     form_category = models.ForeignKey(ApprovalRequestCategory, on_delete=models.CASCADE, null=True)
     current_category_level = models.IntegerField(default=1)
     current_form_level = models.IntegerField(default=0)
-    form_max_level = models.PositiveIntegerField(default=1)
-    category_max_level = models.PositiveIntegerField(default=1)
+    form_max_level = models.PositiveIntegerField(default=1, null=True)
+    category_max_level = models.PositiveIntegerField(default=1, null=True)
     rejected = models.BooleanField(default=False)
     rejection_reason = models.TextField(null=True, blank=True)
 
