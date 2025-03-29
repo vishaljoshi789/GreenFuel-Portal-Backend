@@ -319,7 +319,7 @@ class ApprovalRequestFormAPIView(APIView):
             if not request.user.is_budget_requester:
                 return Response({"error": "User is not a budget requester"}, status=status.HTTP_400_BAD_REQUEST)
 
-            serializer = ApprovalRequestFormSerializer(data=request.data)
+            serializer = ApprovalRequestFormSerializer(data=request.data, partial=True)
             if serializer.is_valid():
                 category_max_level = Approver.objects.filter(approver_request_category=serializer.validated_data['form_category'],department=request.user.department).aggregate(Max('level'))['level__max']
                 form_max_level = Approver.objects.filter(department=serializer.validated_data['concerned_department'],approver_request_category__isnull=True).aggregate(Max('level'))['level__max']
