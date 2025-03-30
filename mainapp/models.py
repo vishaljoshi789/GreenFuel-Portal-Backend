@@ -96,12 +96,12 @@ class ApprovalRequestForm(models.Model):
     
 
     def advance_form_level(self):
-        if self.current_category_level < self.category_max_level:
+        if self.current_category_level != 0 and self.current_category_level < self.category_max_level:
             self.current_category_level += 1
         elif self.current_category_level == self.category_max_level:
             self.current_form_level = 1
             self.current_category_level = 0
-        elif self.current_form_level < self.form_max_level:
+        elif self.current_form_level != 0 and self.current_form_level < self.form_max_level:
             self.current_form_level += 1 
         else:
            self.status = "Approved"
