@@ -348,11 +348,11 @@ class ApprovalRequestFormAPIView(APIView):
                     
                 form_attachments = request.FILES.getlist("form_attachments")
                 for attachment in form_attachments:
-                    FormAttachment.objects.create(form=form, attachment=attachment, type="Form")
+                    FormAttachment.objects.create(form=form, file=attachment, type="Form")
 
                 asset_attachments = request.FILES.getlist("asset_attachments")
                 for attachment in asset_attachments:
-                    FormAttachment.objects.create(form=form, attachment=attachment, type="Asset")
+                    FormAttachment.objects.create(form=form, file=attachment, type="Asset")
 
 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
