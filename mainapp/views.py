@@ -7,12 +7,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
-from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory
+from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory, FormAttachment
 from django.db import transaction
 from django.db.models import Q
+import json
 from django.db.models import Max
 from django.shortcuts import get_object_or_404
-from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, ApprovalRequestCategorySerializer
+from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, ApprovalRequestCategorySerializer, FormAttachmentSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
 UserModel = get_user_model()
@@ -325,7 +326,7 @@ class ApprovalRequestFormAPIView(APIView):
                 form_max_level = Approver.objects.filter(department=serializer.validated_data['concerned_department']).aggregate(Max('level'))['level__max']
                 form = serializer.save(user=request.user,form_max_level=form_max_level)
 
-                items_data = request.data.get("items", [])
+                items_data = request.data.getlist("items", [])
 
                 if not items_data:
                     transaction.set_rollback(True)
@@ -335,7 +336,24 @@ class ApprovalRequestFormAPIView(APIView):
                     )
 
                 for item_data in items_data:
-                    ApprovalRequestItem.objects.create(form=form, **item_data, user=request.user)
+                    try:
+                        item_dict = json.loads(item_data)
+                        ApprovalRequestItem.objects.create(form=form, **item_dict, user=request.user)
+                    except json.JSONDecodeError:
+                        transaction.set_rollback(True)
+                        return Response(
+                            {"error": "Invalid item format."},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    
+                form_attachments = request.FILES.getlist("form_attachments")
+                for attachment in form_attachments:
+                    FormAttachment.objects.create(form=form, attachment=attachment, type="Form")
+
+                asset_attachments = request.FILES.getlist("asset_attachments")
+                for attachment in asset_attachments:
+                    FormAttachment.objects.create(form=form, attachment=attachment, type="Asset")
+
 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db.models import Max
-from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory
+from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory, FormAttachment
 
 UserModel = get_user_model()
 
@@ -53,6 +53,11 @@ class ApprovalRequestFormSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApprovalRequestForm
+        fields = '__all__'
+
+class FormAttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormAttachment
         fields = '__all__'
 
 

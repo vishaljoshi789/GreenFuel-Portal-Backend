@@ -118,6 +118,16 @@ class ApprovalRequestForm(models.Model):
         self.rejection_reason = reason
         self.save()
 
+class FormAttachment(models.Model):
+    TYPE_CHOICES = (('Asset', 'Asset'), ('Form', 'Form'))
+    form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE, related_name='attachments')
+    file = models.FileField(upload_to='attachments/')
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES, null=True, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return str(self.form)
+
 
 class ApprovalLog(models.Model):
     approval_request = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE, related_name='approval_logs')
