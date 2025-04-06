@@ -234,10 +234,10 @@ class ApproverAPIView(APIView):
         type = request.query_params.get('type', None)
         if department:
             approvers = Approver.objects.filter(department_id=department)
-        elif type == 'approver':
-            approvers = Approver.objects.filter(approver_request_category__isnull=True)
-        elif type == 'category':
-            approvers = Approver.objects.filter(approver_request_category__isnull=False)
+        # elif type == 'approver':
+        #     approvers = Approver.objects.filter(approver_request_category__isnull=True)
+        # elif type == 'category':
+        #     approvers = Approver.objects.filter(approver_request_category__isnull=False)
         else:
             approvers = Approver.objects.all()
         serializer = ApproverSerializer(approvers, many=True)
@@ -321,9 +321,9 @@ class ApprovalRequestFormAPIView(APIView):
 
             serializer = ApprovalRequestFormSerializer(data=request.data)
             if serializer.is_valid():
-                category_max_level = Approver.objects.filter(approver_request_category=serializer.validated_data['form_category'],department=request.user.department).aggregate(Max('level'))['level__max']
-                form_max_level = Approver.objects.filter(department=serializer.validated_data['concerned_department'],approver_request_category__isnull=True).aggregate(Max('level'))['level__max']
-                form = serializer.save(user=request.user,form_max_level=form_max_level,category_max_level=category_max_level)
+                # category_max_level = Approver.objects.filter(approver_request_category=serializer.validated_data['form_category'],department=request.user.department).aggregate(Max('level'))['level__max']
+                form_max_level = Approver.objects.filter(department=serializer.validated_data['concerned_department']).aggregate(Max('level'))['level__max']
+                form = serializer.save(user=request.user,form_max_level=form_max_level)
 
                 items_data = request.data.get("items", [])
 
@@ -430,11 +430,12 @@ class PendingApprovalsAPIView(APIView):
                 query |= Q(
                     concerned_department=approver.department,
                     current_form_level=approver.level
-                ) | Q(
-                    current_category_level=approver.level,
-                    form_category=approver.approver_request_category,
-                    department=approver.department
-                )
+                ) 
+                # | Q(
+                #     current_category_level=approver.level,
+                #     form_category=approver.approver_request_category,
+                #     department=approver.department
+                # )
 
             pending_forms = ApprovalRequestForm.objects.filter(query, rejected=False).distinct()
             serializer = ApprovalRequestFormSerializer(pending_forms, many=True)

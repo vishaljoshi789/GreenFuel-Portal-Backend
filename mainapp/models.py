@@ -58,7 +58,7 @@ class ApprovalRequestCategory(models.Model):
     
 class Approver(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    approver_request_category = models.ForeignKey(ApprovalRequestCategory, on_delete=models.CASCADE, null=True)
+    # approver_request_category = models.ForeignKey(ApprovalRequestCategory, on_delete=models.CASCADE, null=True)
     business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     level = models.PositiveIntegerField()
@@ -82,13 +82,16 @@ class ApprovalRequestForm(models.Model):
     approval_category = models.CharField(max_length=255)
     approval_type = models.CharField(max_length=255)
     notify_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notify_to', null=True, blank=True)
-    form_category = models.ForeignKey(ApprovalRequestCategory, on_delete=models.CASCADE, null=True)
-    current_category_level = models.IntegerField(default=1)
+    # form_category = models.ForeignKey(ApprovalRequestCategory, on_delete=models.CASCADE, null=True)
+    # current_category_level = models.IntegerField(default=1)
+    # category_max_level = models.PositiveIntegerField(default=1, null=True)
     current_form_level = models.IntegerField(default=0)
     form_max_level = models.PositiveIntegerField(default=1, null=True)
-    category_max_level = models.PositiveIntegerField(default=1, null=True)
     rejected = models.BooleanField(default=False)
     rejection_reason = models.TextField(null=True, blank=True)
+    payback_period = models.CharField(max_length=255, null=True, blank=True)
+    document_enclosed_summary = models.TextField(null=True, blank=True)
+    current_status = models.CharField(max_length=255, default='Pending')
 
     @property
     def budget_id(self):
@@ -96,12 +99,12 @@ class ApprovalRequestForm(models.Model):
     
 
     def advance_form_level(self):
-        if self.current_category_level != 0 and self.current_category_level < self.category_max_level:
-            self.current_category_level += 1
-        elif self.current_category_level == self.category_max_level:
-            self.current_form_level = 1
-            self.current_category_level = 0
-        elif self.current_form_level != 0 and self.current_form_level < self.form_max_level:
+        # if self.current_category_level != 0 and self.current_category_level < self.category_max_level:
+        #     self.current_category_level += 1
+        # elif self.current_category_level == self.category_max_level:
+        #     self.current_form_level = 1
+        #     self.current_category_level = 0
+        if self.current_form_level != 0 and self.current_form_level < self.form_max_level:
             self.current_form_level += 1 
         else:
            self.status = "Approved"
@@ -111,7 +114,7 @@ class ApprovalRequestForm(models.Model):
         self.rejected = True
         self.status = "Rejected"
         self.current_form_level = 0
-        self.current_category_level = 0
+        # self.current_category_level = 0
         self.rejection_reason = reason
         self.save()
 
