@@ -371,14 +371,17 @@ class ApprovalRequestItemAPIView(APIView):
         serializer = ApprovalRequestItemSerializer(items, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # def post(self, request):
-    #     with transaction.atomic():
-    #         serializer = ApprovalRequestItemSerializer(data=request.data, many=True)
-    #         if serializer.is_valid():
-    #             serializer.save(user=request.user)  
-    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+class FormAttachmentAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request):
+        form_id = request.query_params.get("form_id")
+        if form_id:
+            attachments = FormAttachment.objects.filter(form_id=form_id)
+        else:
+            attachments = FormAttachment.objects.all()
+        serializer = FormAttachmentSerializer(attachments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
 class ApprovalApproveRejectView(APIView):
     permission_classes = [IsAuthenticated]

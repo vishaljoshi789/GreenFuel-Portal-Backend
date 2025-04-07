@@ -23,6 +23,7 @@ urlpatterns = [
     path('approval-requests/', ApprovalRequestFormAPIView.as_view(), name='approval-requests'),
     path('approval-requests/<int:pk>/', ApprovalRequestFormAPIView.as_view(), name='approval-requests'),
     path('approval-items/', ApprovalRequestItemAPIView.as_view(), name='approval-items'),
+    path('approval-attachments/', ApprovalRequestItemAPIView.as_view(), name='approval-attachments'),
     path('approval-requests/<int:pk>/<str:action>/', ApprovalApproveRejectView.as_view(), name='approval-requests-approve-reject'),
     path('approval-logs/', ApprovalLogListView.as_view(), name='approval-logs-list'),
     path('pending-approvals/', PendingApprovalsAPIView.as_view(), name='pending-approvals'),
