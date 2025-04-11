@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-from .views import RegisterUserView, ForgotPasswordView, BusinessUnitAPIView, DepartmentAPIView, DesignationAPIView, UserInfoView, ApprovalRequestFormAPIView, ApprovalRequestItemAPIView, PendingApprovalsAPIView, ApprovalApproveRejectView, ApprovalLogListView, ApproverAPIView, NotificationAPIView, ApprovalRequestCategoryAPIView, FormAttachmentSerializer
+from .views import RegisterUserView, ForgotPasswordView, BusinessUnitAPIView, DepartmentAPIView, DesignationAPIView, UserInfoView, ApprovalRequestFormAPIView, ApprovalRequestItemAPIView, PendingApprovalsAPIView, ApprovalApproveRejectView, ApprovalLogListView, ApproverAPIView, NotificationAPIView, ApprovalRequestCategoryAPIView, FormAttachmentAPIView
 
 urlpatterns = [
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), 
@@ -23,7 +23,7 @@ urlpatterns = [
     path('approval-requests/', ApprovalRequestFormAPIView.as_view(), name='approval-requests'),
     path('approval-requests/<int:pk>/', ApprovalRequestFormAPIView.as_view(), name='approval-requests'),
     path('approval-items/', ApprovalRequestItemAPIView.as_view(), name='approval-items'),
-    path('approval-attachments/', FormAttachmentSerializer.as_view(), name='approval-attachments'),
+    path('approval-attachments/', FormAttachmentAPIView.as_view(), name='approval-attachments'),
     path('approval-requests/<int:pk>/<str:action>/', ApprovalApproveRejectView.as_view(), name='approval-requests-approve-reject'),
     path('approval-logs/', ApprovalLogListView.as_view(), name='approval-logs-list'),
     path('pending-approvals/', PendingApprovalsAPIView.as_view(), name='pending-approvals'),
