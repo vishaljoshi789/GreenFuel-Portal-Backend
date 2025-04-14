@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db.models import Max
-from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory, FormAttachment, Chat, ChatRoom
+from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory, FormAttachment, Chat
 
 UserModel = get_user_model()
 
@@ -77,11 +77,7 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ChatSerializer(serializers.ModelSerializer):
+    sender = UserInfoSerializer(read_only=True)
     class Meta:
         model = Chat
-        fields = '__all__'
-
-class ChatRoomSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ChatRoom
         fields = '__all__'

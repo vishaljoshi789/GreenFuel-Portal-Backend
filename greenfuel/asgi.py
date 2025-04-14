@@ -8,9 +8,9 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "greenfuel.settings")
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
-    "websocket": AuthMiddlewareStack( 
-        URLRouter(
-            mainapp.routing.websocket_urlpatterns
-        )
-    ),
+    # "websocket": AuthMiddlewareStack( 
+    #     URLRouter(
+    #         mainapp.routing.websocket_urlpatterns
+    #     )
+    # ),
 })

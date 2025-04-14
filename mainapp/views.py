@@ -7,13 +7,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
-from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory, FormAttachment, Chat, ChatRoom
+from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory, FormAttachment, Chat
 from django.db import transaction
 from django.db.models import Q
 import json
 from django.db.models import Max
 from django.shortcuts import get_object_or_404
-from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, ApprovalRequestCategorySerializer, FormAttachmentSerializer, ChatRoomSerializer, ChatSerializer
+from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, ApprovalRequestCategorySerializer, FormAttachmentSerializer, ChatSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
 UserModel = get_user_model()
@@ -494,36 +494,17 @@ class NotificationAPIView(APIView):
         notification = get_object_or_404(Notification, pk=pk)
         notification.delete()
         return Response({"message": "Notification deleted"}, status=status.HTTP_200_OK)
-    
-class ChatRoomAPIView(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None):
-        if pk:
-            chat_room = get_object_or_404(ChatRoom, id=pk)
-            serializer = ChatRoomSerializer(chat_room)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        chat_rooms = ChatRoom.objects.filter(Q(user1=request.user) | Q(user2=request.user))
-        serializer = ChatRoomSerializer(chat_rooms, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        serializer = ChatRoomSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 class ChatAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        chat_room_id = request.query_params.get("room_id")
-        if chat_room_id:
-            chats = Chat.objects.filter(chatroom_id=chat_room_id)
+        form_id = request.query_params.get("form_id")
+        if form_id:
+            chats = Chat.objects.filter(form_id=form_id)
             serializer = ChatSerializer(chats, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response({"error": "Chat room ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Form ID is required"}, status=status.HTTP_400_BAD_REQUEST)
             
     def post(self, request):
         serializer = ChatSerializer(data=request.data)

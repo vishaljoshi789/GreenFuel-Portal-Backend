@@ -168,15 +168,8 @@ class ApprovalRequestItem(models.Model):
     def __str__(self):
         return str(self.user)
     
-class ChatRoom(models.Model):
-    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user1')
-    user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user2')
-
-    def __str__(self):
-        return str(self.user1)
-    
 class Chat(models.Model):
-    chatroom = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)
+    form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE, null=True)
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
