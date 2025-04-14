@@ -28,5 +28,5 @@ urlpatterns = [
     path('approval-logs/', ApprovalLogListView.as_view(), name='approval-logs-list'),
     path('pending-approvals/', PendingApprovalsAPIView.as_view(), name='pending-approvals'),
     path('notifications/', NotificationAPIView.as_view(), name='notifications'),
-    path('chats', ChatAPIView.as_view(), name='chats'),
+    path('chats/', ChatAPIView.as_view(), name='chats'),
 ]
