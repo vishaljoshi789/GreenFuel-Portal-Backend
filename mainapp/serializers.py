@@ -77,7 +77,12 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ChatSerializer(serializers.ModelSerializer):
-    sender = UserInfoSerializer(read_only=True)
+    sender = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     class Meta:
         model = Chat
         fields = '__all__'
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['sender'] = UserInfoSerializer(instance.sender).data
+        return rep
