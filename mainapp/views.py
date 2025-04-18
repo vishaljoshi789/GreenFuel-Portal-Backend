@@ -1,6 +1,6 @@
 import random
 import string
-from django.core.mail import send_mail
+# from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.response import Response
@@ -15,6 +15,7 @@ from django.db.models import Max
 from django.shortcuts import get_object_or_404
 from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, ApprovalRequestCategorySerializer, FormAttachmentSerializer, ChatSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
+from .utils import send_email
 
 UserModel = get_user_model()
 
@@ -47,7 +48,7 @@ class RegisterUserView(APIView):
             )
             subject = "Your Account Credentials"
             message = f"Hello {user.email},\n\nYour account has been created successfully!\nYour password is: {password}"
-            send_mail(subject, message, "admin@greenfuelenergy.in", [user.email])
+            send_email(subject, message, "admin@greenfuelenergy.in", [user.email])
             return Response({"message": "User registered successfully! Check your email for the password."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -102,7 +103,7 @@ class ForgotPasswordView(APIView):
             user.save()
             subject = "Password Reset Request"
             message = f"Hello {user.email},\n\nYour new password is: {new_password}"
-            send_mail(subject, message, "admin@greenfuelenergy.in", [user.email])
+            send_email(subject, message, "admin@greenfuelenergy.in", [user.email])
             return Response({"message": "A new password has been sent to your email."}, status=status.HTTP_200_OK)
         except UserModel.DoesNotExist:
             return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
@@ -354,6 +355,36 @@ class ApprovalRequestFormAPIView(APIView):
                 for attachment in asset_attachments:
                     FormAttachment.objects.create(form=form, file=attachment, type="Asset")
 
+                # Notify the user
+                approver = Approver.objects.filter(department=form.concerned_department, level=1).first()
+                subject = "Action Required: CAPEX Request Awaiting Approval"
+                to_email = approver.user.email
+                plain_message = f"""
+                    Dear {approver.user.name},
+
+                    A procurement request has been submitted via the Sugamgreenfuel portal and is pending for your approval.
+
+                    Request ID: {form.budget_id}
+                    Submitted By: {form.user.name} ({form.user.email}) / {form.department.name}
+                    Amount: {form.total}
+
+                    Please review and take necessary action by logging into the system: https://sugamgreenfuel.in
+                    """
+
+                html_message = f"""
+                        <p>Dear {approver.user.name},</p>
+                        <p>A procurement request has been submitted via the <strong>Sugamgreenfuel</strong> portal and is pending for your approval.</p>
+                        <p>
+                        <strong>Request ID:</strong> {form.budget_id}<br>
+                        <strong>Submitted By:</strong> {form.user.name} ({form.user.email}) / {form.department.name}<br>
+                        <strong>Amount:</strong> {form.total}
+                        </p>
+                        <p>
+                        Please review and take necessary action by logging into the system:
+                        <a href="https://sugamgreenfuel.in" target="_blank">SUGHAMGREENFUEL.IN</a>
+                        </p>
+                    """
+                send_email(subject, to_email, plain_message, html_message)
 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -412,6 +443,39 @@ class ApprovalApproveRejectView(APIView):
                 comments=request.data.get("comments", ""),
             )
             approval_log.save()
+
+            #notify approver
+            approver = Approver.objects.filter(department=approval_request.concerned_department, level=approval_request.current_form_level).first()
+            subject = "Action Required: CAPEX Request Awaiting Approval"
+            to_email = approver.user.email
+            plain_message = f"""
+                    Dear {approver.user.name},
+
+                    A procurement request has been submitted via the Sugamgreenfuel portal and is pending for your approval.
+
+                    Request ID: {approval_request.budget_id}
+                    Submitted By: {approval_request.user.name} ({approval_request.user.email}) / {approval_request.department.name}
+                    Amount: {approval_request.total}
+
+                    Please review and take necessary action by logging into the system: https://sugamgreenfuel.in
+                    """
+
+            html_message = f"""
+                        <p>Dear {approver.user.name},</p>
+                        <p>A procurement request has been submitted via the <strong>Sugamgreenfuel</strong> portal and is pending for your approval.</p>
+                        <p>
+                        <strong>Request ID:</strong> {approval_request.budget_id}<br>
+                        <strong>Submitted By:</strong> {approval_request.user.name} ({approval_request.user.email}) / {approval_request.department.name}<br>
+                        <strong>Amount:</strong> {approval_request.total}
+                        </p>
+                        <p>
+                        Please review and take necessary action by logging into the system:
+                        <a href="https://sugamgreenfuel.in" target="_blank">SUGHAMGREENFUEL.IN</a>
+                        </p>
+                    """
+            send_email(subject, to_email, plain_message, html_message)        
+
+
             return Response({"message": "Approval granted"}, status=status.HTTP_200_OK)
 
         elif action == "reject":
@@ -486,7 +550,7 @@ class NotificationAPIView(APIView):
     def send_notification(self, user, message):
         Notification.objects.create(user=user, message=message)
         subject = "Green Fuel"
-        send_mail(subject, message, "admin@greenfuelenergy.in", [user.email])
+        send_email(subject, message, "admin@greenfuelenergy.in", [user.email])
         return Response({"message": "Notification has been sent"}, status=status.HTTP_200_OK)
     
 

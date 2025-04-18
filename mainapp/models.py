@@ -104,7 +104,9 @@ class ApprovalRequestForm(models.Model):
         # elif self.current_category_level == self.category_max_level:
         #     self.current_form_level = 1
         #     self.current_category_level = 0
-        if self.current_form_level != 0 and self.current_form_level < self.form_max_level:
+        if self.current_form_level == 0:
+            self.status = "Rejected"
+        elif self.current_form_level < self.form_max_level:
             self.current_form_level += 1 
         else:
            self.status = "Approved"
