@@ -48,10 +48,10 @@ class RegisterUserView(APIView):
             )
             subject = "Your Account Credentials"
             message = f"Hello {user.email},\n\nYour account has been created successfully!\nYour password is: {password}"
-            send_email(subject, message, "admin@greenfuelenergy.in", [user.email])
+            send_email(subject, [user.email], message)
             return Response({"message": "User registered successfully! Check your email for the password."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class UserInfoView(APIView):
     permission_classes = [IsAuthenticated]
@@ -74,7 +74,7 @@ class UserInfoView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UserInfoSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     def put(self, request, pk):
         user = get_object_or_404(User, pk=pk)
         if request.user != user and not request.user.is_staff:
@@ -103,7 +103,7 @@ class ForgotPasswordView(APIView):
             user.save()
             subject = "Password Reset Request"
             message = f"Hello {user.email},\n\nYour new password is: {new_password}"
-            send_email(subject, message, "admin@greenfuelenergy.in", [user.email])
+            send_email(subject, [user.email], message)
             return Response({"message": "A new password has been sent to your email."}, status=status.HTTP_200_OK)
         except UserModel.DoesNotExist:
             return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
@@ -138,7 +138,7 @@ class BusinessUnitAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request, pk):
         business_unit = get_object_or_404(BusinessUnit, pk=pk)
         business_unit.delete()
@@ -178,12 +178,12 @@ class DepartmentAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request, pk):
         department = get_object_or_404(Department, pk=pk)
         department.delete()
         return Response({"message": "Department deleted"}, status=status.HTTP_200_OK)
-    
+
 
 class DesignationAPIView(APIView):
     def get_permissions(self):
@@ -218,12 +218,12 @@ class DesignationAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request, pk):
         designation = get_object_or_404(Designation, pk=pk)
         designation.delete()
         return Response({"message": "Designation deleted"}, status=status.HTTP_200_OK)
-    
+
 class ApproverAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -244,14 +244,14 @@ class ApproverAPIView(APIView):
             approvers = Approver.objects.all()
         serializer = ApproverSerializer(approvers, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     def post(self, request):
         serializer = ApproverSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def put(self, request, pk):
         approver = get_object_or_404(Approver, id=pk)
         serializer = ApproverSerializer(approver, data=request.data, partial=True)
@@ -259,35 +259,35 @@ class ApproverAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request, pk):
         approver = get_object_or_404(Approver, id=pk)
         approver.delete()
         return Response({"message": "Approver deleted"}, status=status.HTTP_200_OK)
-    
+
 class ApprovalRequestCategoryAPIView(APIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [IsAuthenticated()]
         return [IsAdminUser()]
-    
+
     def get(self, request, pk=None):
         if pk:
             category = get_object_or_404(ApprovalRequestCategory, id=pk)
             serializer = ApprovalRequestCategorySerializer(category)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
         category = ApprovalRequestCategory.objects.all()
         serializer = ApprovalRequestCategorySerializer(category, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     def post(self, request):
         serializer = ApprovalRequestCategorySerializer(data = request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def put(self, request, pk):
         category = get_object_or_404(ApprovalRequestCategory, id=pk)
         serializer = ApprovalRequestCategorySerializer(category, data=request.data, partial=True)
@@ -295,7 +295,7 @@ class ApprovalRequestCategoryAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request, pk):
         category = get_object_or_404(ApprovalRequestCategory, id=pk)
         category.delete()
@@ -346,7 +346,7 @@ class ApprovalRequestFormAPIView(APIView):
                             {"error": "Invalid item format."},
                             status=status.HTTP_400_BAD_REQUEST,
                         )
-                    
+
                 form_attachments = request.FILES.getlist("form_attachments")
                 for attachment in form_attachments:
                     FormAttachment.objects.create(form=form, file=attachment, type="Form")
@@ -413,7 +413,7 @@ class FormAttachmentAPIView(APIView):
             attachments = FormAttachment.objects.all()
         serializer = FormAttachmentSerializer(attachments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
 class ApprovalApproveRejectView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -424,10 +424,10 @@ class ApprovalApproveRejectView(APIView):
 
         if not Approver.objects.filter(user=request.user).exists():
             return Response({"error": "User is not an approver"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if approval_request.rejected:
             return Response({"error": "Approval request has been rejected"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if not any(approval_request.department == approver.department for approver in user_approvers):
             return Response({"error": "User is not the approver of this request"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -473,7 +473,7 @@ class ApprovalApproveRejectView(APIView):
                         <a href="https://sugamgreenfuel.in" target="_blank">SUGHAMGREENFUEL.IN</a>
                         </p>
                     """
-            send_email(subject, to_email, plain_message, html_message)        
+            send_email(subject, to_email, plain_message, html_message)
 
 
             return Response({"message": "Approval granted"}, status=status.HTTP_200_OK)
@@ -515,7 +515,7 @@ class PendingApprovalsAPIView(APIView):
                 query |= Q(
                     concerned_department=approver.department,
                     current_form_level=approver.level
-                ) 
+                )
                 # | Q(
                 #     current_category_level=approver.level,
                 #     form_category=approver.approver_request_category,
@@ -527,7 +527,7 @@ class PendingApprovalsAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 class NotificationAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -546,13 +546,13 @@ class NotificationAPIView(APIView):
             serializer.save(user=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def send_notification(self, user, message):
         Notification.objects.create(user=user, message=message)
         subject = "Green Fuel"
         send_email(subject, message, "admin@greenfuelenergy.in", [user.email])
         return Response({"message": "Notification has been sent"}, status=status.HTTP_200_OK)
-    
+
 
     def delete(self, request, pk):
         notification = get_object_or_404(Notification, pk=pk)
@@ -569,7 +569,7 @@ class ChatAPIView(APIView):
             serializer = ChatSerializer(chats, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response({"error": "Form ID is required"}, status=status.HTTP_400_BAD_REQUEST)
-            
+
     def post(self, request):
         serializer = ChatSerializer(data=request.data)
         if serializer.is_valid():
