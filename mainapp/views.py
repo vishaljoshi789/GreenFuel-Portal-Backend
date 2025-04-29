@@ -48,8 +48,8 @@ class RegisterUserView(APIView):
             )
             subject = "Your Account Credentials"
             message = f"Hello {user.email},\n\nYour account has been created successfully!\nYour password is: {password}"
-            send_email(subject, [user.email], message)
-            return Response({"message": "User registered successfully! Check your email for the password."}, status=status.HTTP_201_CREATED)
+            if send_email(subject, user.email, message):
+                return Response({"message": "User registered successfully! Check your email for the password."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -103,8 +103,10 @@ class ForgotPasswordView(APIView):
             user.save()
             subject = "Password Reset Request"
             message = f"Hello {user.email},\n\nYour new password is: {new_password}"
-            send_email(subject, [user.email], message)
-            return Response({"message": "A new password has been sent to your email."}, status=status.HTTP_200_OK)
+            if send_email(subject, user.email, message):
+                return Response({"message": "A new password has been sent to your email."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "Email not sent."}, status=status.HTTP_400_BAD_REQUEST)
         except UserModel.DoesNotExist:
             return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -384,9 +386,10 @@ class ApprovalRequestFormAPIView(APIView):
                         <a href="https://sugamgreenfuel.in" target="_blank">SUGHAMGREENFUEL.IN</a>
                         </p>
                     """
-                send_email(subject, to_email, plain_message, html_message)
-
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                if send_email(subject, to_email, plain_message, html_message):
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"message": "Email not sent."}, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -473,10 +476,10 @@ class ApprovalApproveRejectView(APIView):
                         <a href="https://sugamgreenfuel.in" target="_blank">SUGHAMGREENFUEL.IN</a>
                         </p>
                     """
-            send_email(subject, to_email, plain_message, html_message)
-
-
-            return Response({"message": "Approval granted"}, status=status.HTTP_200_OK)
+            if send_email(subject, to_email, plain_message, html_message):
+                return Response({"message": "Approval granted"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "Email not sent."}, status=status.HTTP_400_BAD_REQUEST)
 
         elif action == "reject":
             rejection_reason = request.data.get("comments", "No reason provided")
