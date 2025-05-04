@@ -9,7 +9,7 @@ class BusinessUnit(models.Model):
 
     def __str__(self):
         return str(self.name)
-    
+
 class Department(models.Model):
     name = models.CharField(max_length=300)
     business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE, null=True)
@@ -51,11 +51,11 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
-    
+
 class ApprovalRequestCategory(models.Model):
     name = models.CharField(max_length=300, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
 class Approver(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     # approver_request_category = models.ForeignKey(ApprovalRequestCategory, on_delete=models.CASCADE, null=True)
@@ -96,7 +96,7 @@ class ApprovalRequestForm(models.Model):
     @property
     def budget_id(self):
         return str(self.id + 9999999)
-    
+
 
     def advance_form_level(self):
         # if self.current_category_level != 0 and self.current_category_level < self.category_max_level:
@@ -107,7 +107,7 @@ class ApprovalRequestForm(models.Model):
         if self.current_form_level == 0:
             self.status = "Rejected"
         elif self.current_form_level < self.form_max_level:
-            self.current_form_level += 1 
+            self.current_form_level += 1
         else:
            self.status = "Approved"
         self.save()
@@ -143,11 +143,11 @@ class ApprovalLog(models.Model):
     comments = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        is_new = self._state.adding 
+        is_new = self._state.adding
         previous_status = None
 
         if not is_new:
-            previous_status = ApprovalLog.objects.get(pk=self.pk).status 
+            previous_status = ApprovalLog.objects.get(pk=self.pk).status
 
         super().save(*args, **kwargs)
 
@@ -156,7 +156,7 @@ class ApprovalLog(models.Model):
                 self.approval_request.advance_form_level()
             elif self.status == 'rejected':
                 self.approval_request.reject(self.comments or "No reason provided")
-    
+
 class ApprovalRequestItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
@@ -169,7 +169,7 @@ class ApprovalRequestItem(models.Model):
 
     def __str__(self):
         return str(self.user)
-    
+
 class Chat(models.Model):
     form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE, null=True)
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
