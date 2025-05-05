@@ -2,8 +2,17 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db.models import Max
 from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory, FormAttachment, Chat
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 UserModel = get_user_model()
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+            data = super().validate(attrs)
+            user = self.user
+            data['role'] = user.role
+            return data
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:

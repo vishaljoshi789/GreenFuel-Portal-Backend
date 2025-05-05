@@ -13,11 +13,30 @@ from django.db.models import Q
 import json
 from django.db.models import Max
 from django.shortcuts import get_object_or_404
-from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, ApprovalRequestCategorySerializer, FormAttachmentSerializer, ChatSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, ApprovalRequestCategorySerializer, FormAttachmentSerializer, ChatSerializer, CustomTokenObtainPairSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from .utils import send_email
 
 UserModel = get_user_model()
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        role = response.data.get('role')
+
+        # Set role in cookie
+        response.set_cookie(
+            key='user_role',
+            value=role,
+            httponly=False,  # allow frontend access if needed
+            secure=True,     # set to True in production (HTTPS)
+            samesite='Lax',
+            max_age=3600,
+        )
+        return response
 
 class RegisterUserView(APIView):
     permission_classes = [IsAdminUser]
