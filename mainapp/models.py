@@ -28,6 +28,8 @@ class Designation(models.Model):
 
 # Create your models here.
 class User(AbstractUser):
+    ROLE_CHOICES = (("ADMIN", "ADMIN"), ("APPROVER", "APPROVER"), ("MD", "MD"), ("EMPLOYEE", "EMPLOYEE"))
+
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=255, null=True, blank=True)
     dob = models.DateField(null=True, blank=True)
@@ -40,6 +42,7 @@ class User(AbstractUser):
     city = models.CharField(max_length=255, null=True, blank=True)
     state = models.CharField(max_length=255, null=True, blank=True)
     country = models.CharField(max_length=255, null=True, blank=True)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, null=True, blank=True)
     status = models.BooleanField(default=True)
     is_budget_requester = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
