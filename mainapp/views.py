@@ -32,8 +32,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             key='user_role',
             value=role,
             # httponly=False,
-            # secure=True,
-            samesite='Lax',
+            secure=True,
+            samesite='None',
             max_age=3600,
         )
         return response
