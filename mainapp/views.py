@@ -31,8 +31,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         response.set_cookie(
             key='user_role',
             value=role,
-            httponly=False,  # allow frontend access if needed
-            secure=True,     # set to True in production (HTTPS)
+            # httponly=False,
+            # secure=True,
             samesite='Lax',
             max_age=3600,
         )
