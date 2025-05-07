@@ -9,7 +9,7 @@ from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
 from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory, FormAttachment, Chat
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, F
 import json
 from django.db.models import Max
 from django.shortcuts import get_object_or_404
@@ -545,6 +545,8 @@ class PendingApprovalsAPIView(APIView):
                 # )
 
             pending_forms = ApprovalRequestForm.objects.filter(query, rejected=False).distinct()
+            if request.user.role == "MD":
+                pending_forms = ApprovalRequestForm.objects.filter(current_form_level__gt=F('form_max_level'), total__gte=5000000, status="Pending for MD approval.")
             serializer = ApprovalRequestFormSerializer(pending_forms, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:

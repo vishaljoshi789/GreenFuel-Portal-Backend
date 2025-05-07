@@ -114,6 +114,7 @@ class ApprovalRequestForm(models.Model):
         else:
             if self.total >= 500000:
                 self.status = "Pending for MD approval."
+                self.current_form_level = self.current_form_level + 1
             else:
                 self.current_form_level = self.current_form_level + 1
                 self.status = "Approved"
