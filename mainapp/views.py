@@ -31,7 +31,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         response.set_cookie(
             key='user_role',
             value=role,
-            # httponly=False,
+            httponly=False,
             secure=True,
             samesite='None',
             max_age=3600,
