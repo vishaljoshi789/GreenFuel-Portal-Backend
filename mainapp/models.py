@@ -112,7 +112,11 @@ class ApprovalRequestForm(models.Model):
         elif self.current_form_level < self.form_max_level:
             self.current_form_level += 1
         else:
-           self.status = "Approved"
+            if self.total >= 500000:
+                self.status = "Pending for MD approval."
+            else:
+                self.current_form_level = self.current_form_level + 1
+                self.status = "Approved"
         self.save()
 
     def reject(self, reason):
