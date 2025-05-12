@@ -444,13 +444,13 @@ class ApprovalApproveRejectView(APIView):
 
         user_approvers = Approver.objects.filter(user=request.user)
 
-        if not Approver.objects.filter(user=request.user).exists():
+        if not Approver.objects.filter(user=request.user).exists() and request.user.role != 'MD':
             return Response({"error": "User is not an approver"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if approval_request.rejected:
+        if approval_request.rejected and request.user.role != 'MD':
             return Response({"error": "Approval request has been rejected"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not any(approval_request.department == approver.department for approver in user_approvers):
+        if not any(approval_request.department == approver.department for approver in user_approvers) and request.user.role != 'MD':
             return Response({"error": "User is not the approver of this request"}, status=status.HTTP_400_BAD_REQUEST)
 
         # if approval_request.current_form_level == 0 and not any(approval_request.current_category_level == approver.level and approval_request.form_category == approver.approver_request_category for approver in user_approvers):
