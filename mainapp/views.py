@@ -500,6 +500,9 @@ class ApprovalApproveRejectView(APIView):
                     return Response({"message": "Approval granted"}, status=status.HTTP_200_OK)
                 else:
                     return Response({"message": "Email not sent."}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"message": "Approval granted"}, status=status.HTTP_200_OK)
+
 
         elif action == "reject":
             rejection_reason = request.data.get("comments", "No reason provided")
