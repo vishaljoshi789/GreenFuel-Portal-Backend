@@ -468,37 +468,38 @@ class ApprovalApproveRejectView(APIView):
 
             #notify approver
             approver = Approver.objects.filter(department=approval_request.concerned_department, level=approval_request.current_form_level).first()
-            subject = "Action Required: CAPEX Request Awaiting Approval"
-            to_email = approver.user.email
-            plain_message = f"""
-                    Dear {approver.user.name},
+            if approver:
+                subject = "Action Required: CAPEX Request Awaiting Approval"
+                to_email = approver.user.email
+                plain_message = f"""
+                        Dear {approver.user.name},
 
-                    A procurement request has been submitted via the Sugamgreenfuel portal and is pending for your approval.
+                        A procurement request has been submitted via the Sugamgreenfuel portal and is pending for your approval.
 
-                    Request ID: {approval_request.budget_id}
-                    Submitted By: {approval_request.user.name} ({approval_request.user.email}) / {approval_request.department.name}
-                    Amount: {approval_request.total}
+                        Request ID: {approval_request.budget_id}
+                        Submitted By: {approval_request.user.name} ({approval_request.user.email}) / {approval_request.department.name}
+                        Amount: {approval_request.total}
 
-                    Please review and take necessary action by logging into the system: https://sugamgreenfuel.in
-                    """
+                        Please review and take necessary action by logging into the system: https://sugamgreenfuel.in
+                        """
 
-            html_message = f"""
-                        <p>Dear {approver.user.name},</p>
-                        <p>A procurement request has been submitted via the <strong>Sugamgreenfuel</strong> portal and is pending for your approval.</p>
-                        <p>
-                        <strong>Request ID:</strong> {approval_request.budget_id}<br>
-                        <strong>Submitted By:</strong> {approval_request.user.name} ({approval_request.user.email}) / {approval_request.department.name}<br>
-                        <strong>Amount:</strong> {approval_request.total}
-                        </p>
-                        <p>
-                        Please review and take necessary action by logging into the system:
-                        <a href="https://sugamgreenfuel.in" target="_blank">SUGHAMGREENFUEL.IN</a>
-                        </p>
-                    """
-            if send_email(subject, to_email, plain_message, html_message):
-                return Response({"message": "Approval granted"}, status=status.HTTP_200_OK)
-            else:
-                return Response({"message": "Email not sent."}, status=status.HTTP_400_BAD_REQUEST)
+                html_message = f"""
+                            <p>Dear {approver.user.name},</p>
+                            <p>A procurement request has been submitted via the <strong>Sugamgreenfuel</strong> portal and is pending for your approval.</p>
+                            <p>
+                            <strong>Request ID:</strong> {approval_request.budget_id}<br>
+                            <strong>Submitted By:</strong> {approval_request.user.name} ({approval_request.user.email}) / {approval_request.department.name}<br>
+                            <strong>Amount:</strong> {approval_request.total}
+                            </p>
+                            <p>
+                            Please review and take necessary action by logging into the system:
+                            <a href="https://sugamgreenfuel.in" target="_blank">SUGHAMGREENFUEL.IN</a>
+                            </p>
+                        """
+                if send_email(subject, to_email, plain_message, html_message):
+                    return Response({"message": "Approval granted"}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"message": "Email not sent."}, status=status.HTTP_400_BAD_REQUEST)
 
         elif action == "reject":
             rejection_reason = request.data.get("comments", "No reason provided")
