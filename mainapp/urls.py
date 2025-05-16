@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-from .views import CustomTokenObtainPairView, RegisterUserView, ForgotPasswordView, BusinessUnitAPIView, DepartmentAPIView, DesignationAPIView, UserInfoView, ApprovalRequestFormAPIView, ApprovalRequestItemAPIView, PendingApprovalsAPIView, ApprovalApproveRejectView, ApprovalLogListView, ApproverAPIView, NotificationAPIView, ApprovalRequestCategoryAPIView, FormAttachmentAPIView, ChatAPIView
+from .views import CustomTokenObtainPairView, RegisterUserView, ForgotPasswordView, BusinessUnitAPIView, DepartmentAPIView, DesignationAPIView, UserInfoView, ApprovalRequestFormAPIView, ApprovalRequestItemAPIView, PendingApprovalsAPIView, ApprovalApproveRejectView, ApprovalLogListView, ApproverAPIView, NotificationAPIView, ApprovalRequestCategoryAPIView, FormAttachmentAPIView, ChatAPIView, ChangePasswordAPIView
 
 urlpatterns = [
     path('auth/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -14,6 +14,7 @@ urlpatterns = [
     path('departments/<int:pk>/', DepartmentAPIView.as_view(), name='department-update'),
     path('register/', RegisterUserView.as_view(), name='register'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
+    path('change-password/', ChangePasswordAPIView.as_view(), name='change-password'),
     path('userInfo/', UserInfoView.as_view(), name='userInfo'),
     path('userInfo/<int:pk>/', UserInfoView.as_view(), name='userInfo-update'),
     path('approver/', ApproverAPIView.as_view(), name='approver'),
