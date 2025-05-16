@@ -129,6 +129,17 @@ class ForgotPasswordView(APIView):
         except UserModel.DoesNotExist:
             return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
 
+class ChangePasswordAPIView(APIView):
+    def post(self, request):
+        old_pass = request.data["old_pass"]
+        new_pass = request.data["new_pass"]
+        user = UserModel.objects.get(id = request.user.id)
+        if user.check_password(old_pass):
+            user.set_password(new_pass)
+            return Response({"message": "Password Changed Successfully."})
+        else:
+            return Response({"message": "Invalid Credentials."})
+
 class BusinessUnitAPIView(APIView):
     def get_permissions(self):
         if self.request.method == 'GET':
