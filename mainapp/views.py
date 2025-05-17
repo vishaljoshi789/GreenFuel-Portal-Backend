@@ -136,6 +136,7 @@ class ChangePasswordAPIView(APIView):
         user = UserModel.objects.get(id = request.user.id)
         if user.check_password(old_pass):
             user.set_password(new_pass)
+            user.save()
             return Response({"message": "Password Changed Successfully."})
         else:
             return Response({"message": "Invalid Credentials."})
