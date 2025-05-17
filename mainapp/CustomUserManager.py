@@ -17,5 +17,6 @@ class UserManager(BaseUserManager):
         """Creates and returns a superuser."""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('role', "ADMIN")
 
         return self.create_user(email, password, **extra_fields)
