@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-from .views import CustomTokenObtainPairView, RegisterUserView, ForgotPasswordView, BusinessUnitAPIView, DepartmentAPIView, DesignationAPIView, UserInfoView, ApprovalRequestFormAPIView, ApprovalRequestItemAPIView, PendingApprovalsAPIView, ApprovalApproveRejectView, ApprovalLogListView, ApproverAPIView, NotificationAPIView, ApprovalRequestCategoryAPIView, FormAttachmentAPIView, ChatAPIView, ChangePasswordAPIView
+from .views import CustomTokenObtainPairView, RegisterUserView, ForgotPasswordView, BusinessUnitAPIView, DepartmentAPIView, DesignationAPIView, UserInfoView, ApprovalRequestFormAPIView, ApprovalRequestItemAPIView, PendingApprovalsAPIView, ApprovalApproveRejectView, ApprovalLogListView, ApproverAPIView, NotificationAPIView, ApprovalRequestCategoryAPIView, FormAttachmentAPIView, ChatAPIView, ChangePasswordAPIView, ApprovalDashboardView
 
 urlpatterns = [
     path('auth/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -30,4 +30,5 @@ urlpatterns = [
     path('pending-approvals/', PendingApprovalsAPIView.as_view(), name='pending-approvals'),
     path('notifications/', NotificationAPIView.as_view(), name='notifications'),
     path('chats/', ChatAPIView.as_view(), name='chats'),
+    path('approver-dashboard-stats/', ApprovalDashboardView.as_view(), name='approver-dashboard-stats')
 ]
