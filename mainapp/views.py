@@ -623,10 +623,11 @@ class ApprovalDashboardView(APIView):
         pending_count = ApprovalRequestForm.objects.filter(user=user, status='Pending', rejected=False).count()
         approved_count = ApprovalRequestForm.objects.filter(user=user, status='Approved', rejected=False).count()
         rejected_count = ApprovalRequestForm.objects.filter(user=user, rejected=True).count()
-
+        form_count = ApprovalRequestForm.objects.filter(user=user).count()
         context = {
                     'pending_count': pending_count,
                     'approved_count': approved_count,
                     'rejected_count': rejected_count,
+                    'form_count': form_count
         }
         return Response(context, status=status.HTTP_200_OK)
