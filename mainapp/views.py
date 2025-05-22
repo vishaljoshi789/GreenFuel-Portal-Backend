@@ -17,6 +17,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, ApprovalRequestCategorySerializer, FormAttachmentSerializer, ChatSerializer, CustomTokenObtainPairSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from .utils import send_email
+from datetime import datetime, date
+from calendar import monthrange
 
 UserModel = get_user_model()
 
@@ -631,3 +633,47 @@ class ApprovalDashboardView(APIView):
                     'form_count': form_count
         }
         return Response(context, status=status.HTTP_200_OK)
+
+class UserYearlyStatsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        year_str = request.query_params.get('year')
+
+        if not year_str:
+            return Response({"error": "Missing 'year' parameter. Use format YYYY."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            year = int(year_str)
+        except ValueError:
+            return Response({"error": "Invalid year format. Use YYYY."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        yearly_stats = []
+
+        for month in range(1, 13):
+            month_start = date(year, month, 1)
+            last_day = monthrange(year, month)[1]
+            month_end = date(year, month, last_day + 1)
+
+            base_qs = ApprovalRequestForm.objects.filter(
+                user=user,
+                date__gte=month_start,
+                date__lt=month_end
+            )
+
+            monthly_data = {
+                "month": month_start.strftime("%B"),
+                "created": base_qs.count(),
+                "approved": base_qs.filter(current_status='Approved').count(),
+                "rejected": base_qs.filter(rejected=True).count(),
+            }
+
+            yearly_stats.append(monthly_data)
+
+        return Response({
+            "year": year,
+            "data": yearly_stats
+        }, status=status.HTTP_200_OK)
