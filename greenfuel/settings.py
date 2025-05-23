@@ -28,7 +28,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.3', 'sugamgreenfuel.in', 'www.sugamgreenfuel.in']
+ALLOWED_HOSTS = ['localhost:4000', '127.0.0.1', '192.168.1.3', 'sugamgreenfuel.in', 'www.sugamgreenfuel.in']
 
 # Application definition
 
@@ -81,7 +81,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-CORS_ALLOWED_ORIGINS = ['http://localhost', 'http://127.0.0.1', 'http://192.168.1.3', 'http://sugamgreenfuel.in', 'http://sugamgreenfuel.in']
+CORS_ALLOWED_ORIGINS = ['http://localhost:4000', 'http://127.0.0.1', 'http://192.168.1.3', 'http://sugamgreenfuel.in', 'http://sugamgreenfuel.in']
 
 CORS_ALLOW_CREDENTIALS = True
 
