@@ -186,7 +186,7 @@ class Chat(models.Model):
     form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE, null=True)
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True)
     read = models.BooleanField(default=False)
 
     def __str__(self):
@@ -195,7 +195,7 @@ class Chat(models.Model):
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True)
     read = models.BooleanField(default=False)
 
     def __str__(self):
