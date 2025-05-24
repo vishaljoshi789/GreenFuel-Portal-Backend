@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('mainapp', '0003_approvalrequestcategory_and_more'),
+        ('mainapp', '0003_Category_and_more'),
     ]
 
     operations = [

@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='approvalrequestform',
             name='form_category',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='mainapp.approvalrequestcategory'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='mainapp.Category'),
         ),
     ]

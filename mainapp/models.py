@@ -55,13 +55,13 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
-class ApprovalRequestCategory(models.Model):
+class Category(models.Model):
     name = models.CharField(max_length=300, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class Approver(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    # approver_request_category = models.ForeignKey(ApprovalRequestCategory, on_delete=models.CASCADE, null=True)
+    # approver_request_category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
     business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     level = models.PositiveIntegerField()
@@ -85,7 +85,7 @@ class ApprovalRequestForm(models.Model):
     approval_category = models.CharField(max_length=255)
     approval_type = models.CharField(max_length=255)
     notify_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notify_to', null=True, blank=True)
-    # form_category = models.ForeignKey(ApprovalRequestCategory, on_delete=models.CASCADE, null=True)
+    # form_category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
     # current_category_level = models.IntegerField(default=1)
     # category_max_level = models.PositiveIntegerField(default=1, null=True)
     current_form_level = models.IntegerField(default=0)
@@ -200,3 +200,32 @@ class Notification(models.Model):
 
     def __str__(self):
         return str(self.user)
+
+class BudgetAllocation(models.Model):
+    business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    budget = models.DecimalField(max_digits=10, decimal_places=2)
+    remaining_budget = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+class BudgetAllocationHistory(models.Model):
+    TRANSACTION_TYPE_CHOICES = [
+        ('DEBIT', 'DEBIT'),
+        ('CREDIT', 'CREDIT'),
+    ]
+    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPE_CHOICES)
+    budget_allocation = models.ForeignKey(BudgetAllocation, on_delete=models.CASCADE, related_name='history')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateTimeField(auto_now_add=True)
+    remarks = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if self.transaction_type == 'DEBIT':
+            if self.amount > self.budget_allocation.remaining_budget:
+                raise ValueError("Insufficient budget")
+            self.budget_allocation.remaining_budget -= self.amount
+        elif self.transaction_type == 'CREDIT':
+            self.budget_allocation.amount = self.amount
+            self.budget_allocation.remaining_budget = self.amount
+        self.budget_allocation.save()
+        super().save(*args, **kwargs)

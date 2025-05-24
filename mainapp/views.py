@@ -7,14 +7,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserRegistrationSerializer
 from django.utils.crypto import get_random_string
-from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory, FormAttachment, Chat
+from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, Category, FormAttachment, Chat, BudgetAllocation, BudgetAllocationHistory
 from django.db import transaction
 from django.db.models import Q, F
 import json
 from django.db.models import Max
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, ApprovalRequestCategorySerializer, FormAttachmentSerializer, ChatSerializer, CustomTokenObtainPairSerializer
+from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, CategorySerializer, FormAttachmentSerializer, ChatSerializer, CustomTokenObtainPairSerializer, BudgetAllocationSerializer, BudgetAllocationHistorySerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from .utils import send_email
 from datetime import datetime, date
@@ -300,7 +300,7 @@ class ApproverAPIView(APIView):
         approver.delete()
         return Response({"message": "Approver deleted"}, status=status.HTTP_200_OK)
 
-class ApprovalRequestCategoryAPIView(APIView):
+class CategoryAPIView(APIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [IsAuthenticated()]
@@ -308,31 +308,31 @@ class ApprovalRequestCategoryAPIView(APIView):
 
     def get(self, request, pk=None):
         if pk:
-            category = get_object_or_404(ApprovalRequestCategory, id=pk)
-            serializer = ApprovalRequestCategorySerializer(category)
+            category = get_object_or_404(Category, id=pk)
+            serializer = CategorySerializer(category)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        category = ApprovalRequestCategory.objects.all()
-        serializer = ApprovalRequestCategorySerializer(category, many=True)
+        category = Category.objects.all()
+        serializer = CategorySerializer(category, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = ApprovalRequestCategorySerializer(data = request.data)
+        serializer = CategorySerializer(data = request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
-        category = get_object_or_404(ApprovalRequestCategory, id=pk)
-        serializer = ApprovalRequestCategorySerializer(category, data=request.data, partial=True)
+        category = get_object_or_404(Category, id=pk)
+        serializer = CategorySerializer(category, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        category = get_object_or_404(ApprovalRequestCategory, id=pk)
+        category = get_object_or_404(Category, id=pk)
         category.delete()
         return Response({"message": "Category deleted"}, status=status.HTTP_200_OK)
 
@@ -677,3 +677,58 @@ class UserYearlyStatsAPIView(APIView):
             "year": year,
             "data": yearly_stats
         }, status=status.HTTP_200_OK)
+
+class UserBudgetAllocationAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        department = request.query_params.get('department', None)
+        category = request.query_params.get('category', None)
+        budget_allocations = BudgetAllocation.objects.filter(department=department, category=category)
+        serializer = BudgetAllocationSerializer(budget_allocations)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        department = request.data.get('department')
+        category = request.data.get('category')
+        amount = request.data.get('amount')
+        transaction_type = request.data.get('transaction_type')
+        remarks = request.data.get('remarks')
+
+        if not all([department, category, amount, transaction_type]):
+            return Response(
+                {"error": "Missing required fields"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        budget_allocation = BudgetAllocation.objects.filter(
+            department=department,
+            category=category
+        ).first()
+
+        if not budget_allocation:
+            budget_allocation = BudgetAllocation.objects.create(
+                department=department,
+                category=category
+            )
+
+        BudgetAllocationHistory.objects.create(
+            budget_allocation=budget_allocation,
+            amount=amount,
+            transaction_type=transaction_type,
+            remarks=remarks
+        )
+
+        serializer = BudgetAllocationSerializer(budget_allocation)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class UserBudgetAllocationHistoryAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        department = request.query_params.get('department', None)
+        category = request.query_params.get('category', None)
+        budget_allocations = BudgetAllocationHistory.objects.filter(budget_allocation__department=department, budget_allocation__category=category)
+        serializer = BudgetAllocationHistorySerializer(budget_allocations)
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db.models import Max
-from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, ApprovalRequestCategory, FormAttachment, Chat
+from .models import BusinessUnit, Department, Designation, User, ApprovalRequestForm, ApprovalRequestItem, ApprovalLog, Approver, Notification, Category, FormAttachment, Chat, BudgetAllocation, BudgetAllocationHistory
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 UserModel = get_user_model()
@@ -44,9 +44,9 @@ class UserInfoSerializer(serializers.ModelSerializer):
         model = User
         exclude = ['password', 'groups', 'user_permissions', 'is_active', 'is_superuser', 'first_name', 'last_name']
 
-class ApprovalRequestCategorySerializer(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = ApprovalRequestCategory
+        model = Category
         fields = '__all__'
 
 class ApproverSerializer(serializers.ModelSerializer):
@@ -95,3 +95,13 @@ class ChatSerializer(serializers.ModelSerializer):
         rep = super().to_representation(instance)
         rep['sender'] = UserInfoSerializer(instance.sender).data
         return rep
+
+class BudgetAllocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BudgetAllocation
+        fields = '__all__'
+
+class BudgetAllocationHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BudgetAllocationHistory
+        fields = '__all__'

@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-from .views import CustomTokenObtainPairView, RegisterUserView, ForgotPasswordView, BusinessUnitAPIView, DepartmentAPIView, DesignationAPIView, UserInfoView, ApprovalRequestFormAPIView, ApprovalRequestItemAPIView, PendingApprovalsAPIView, ApprovalApproveRejectView, ApprovalLogListView, ApproverAPIView, NotificationAPIView, ApprovalRequestCategoryAPIView, FormAttachmentAPIView, ChatAPIView, ChangePasswordAPIView, ApprovalDashboardView, UserYearlyStatsAPIView
+from .views import CustomTokenObtainPairView, RegisterUserView, ForgotPasswordView, BusinessUnitAPIView, DepartmentAPIView, DesignationAPIView, UserInfoView, ApprovalRequestFormAPIView, ApprovalRequestItemAPIView, PendingApprovalsAPIView, ApprovalApproveRejectView, ApprovalLogListView, ApproverAPIView, NotificationAPIView, CategoryAPIView, FormAttachmentAPIView, ChatAPIView, ChangePasswordAPIView, ApprovalDashboardView, UserYearlyStatsAPIView, UserBudgetAllocationAPIView, UserBudgetAllocationHistoryAPIView
 
 urlpatterns = [
     path('auth/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -19,8 +19,8 @@ urlpatterns = [
     path('userInfo/<int:pk>/', UserInfoView.as_view(), name='userInfo-update'),
     path('approver/', ApproverAPIView.as_view(), name='approver'),
     path('approver/<int:pk>/', ApproverAPIView.as_view(), name='approver'),
-    path('approval-request-category/', ApprovalRequestCategoryAPIView.as_view(), name='approver-request-category'),
-    path('approval-request-category/<int:pk>/', ApprovalRequestCategoryAPIView.as_view(), name='approver-request-category'),
+    path('approval-request-category/', CategoryAPIView.as_view(), name='approver-request-category'),
+    path('approval-request-category/<int:pk>/', CategoryAPIView.as_view(), name='approver-request-category'),
     path('approval-requests/', ApprovalRequestFormAPIView.as_view(), name='approval-requests'),
     path('approval-requests/<int:pk>/', ApprovalRequestFormAPIView.as_view(), name='approval-requests'),
     path('approval-items/', ApprovalRequestItemAPIView.as_view(), name='approval-items'),
@@ -31,5 +31,7 @@ urlpatterns = [
     path('notifications/', NotificationAPIView.as_view(), name='notifications'),
     path('chats/', ChatAPIView.as_view(), name='chats'),
     path('approver-dashboard-stats/', ApprovalDashboardView.as_view(), name='approver-dashboard-stats'),
-    path('yearly-stats/', UserYearlyStatsAPIView.as_view(), name='yearly-stats')
+    path('yearly-stats/', UserYearlyStatsAPIView.as_view(), name='yearly-stats'),
+    path('budget-allocation/', UserBudgetAllocationAPIView.as_view(), name='budget-allocation'),
+    path('budget-history/', UserBudgetAllocationHistoryAPIView.as_view(), name='budget-allocation-history'),
 ]

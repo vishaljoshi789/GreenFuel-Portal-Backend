@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='ApprovalRequestCategory',
+            name='Category',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(blank=True, max_length=300, null=True)),
@@ -47,6 +47,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='approver',
             name='approver_request_category',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='mainapp.approvalrequestcategory'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='mainapp.Category'),
         ),
     ]
