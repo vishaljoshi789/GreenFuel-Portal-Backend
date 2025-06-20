@@ -391,7 +391,7 @@ class ApprovalRequestFormAPIView(APIView):
                     FormAttachment.objects.create(form=form, file=attachment, type="Asset")
 
                 # Notify the user
-                approver = Approver.objects.filter(department=serializer.validated_data['concerned_department'], level=1).first()
+                approver = Approver.objects.get(department=serializer.validated_data['concerned_department'], level=1)
                 subject = "Action Required: CAPEX Request Awaiting Approval"
                 to_email = approver.user.email
                 plain_message = f"""
