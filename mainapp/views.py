@@ -1,5 +1,6 @@
 import random
 import string
+import json
 # from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from rest_framework import status
@@ -656,12 +657,12 @@ class UserYearlyStatsAPIView(APIView):
         for month in range(1, 13):
             month_start = date(year, month, 1)
             last_day = monthrange(year, month)[1]
-            month_end = date(year, month, last_day + 1)
+            month_end = date(year, month, last_day)  # ✅ FIXED: removed +1 to avoid ValueError
 
             base_qs = ApprovalRequestForm.objects.filter(
                 user=user,
                 date__gte=month_start,
-                date__lt=month_end
+                date__lte=month_end  # ✅ changed from < to <= to include last day
             )
 
             monthly_data = {
