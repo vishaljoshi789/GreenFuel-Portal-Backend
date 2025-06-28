@@ -683,6 +683,17 @@ class UserBudgetAllocationAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+
+        if request.query_params.get('all') == 'true':
+            budget_allocations = BudgetAllocation.objects.all()
+            serializer = BudgetAllocationSerializer(budget_allocations, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if request.query_params.get('department') is None or request.query_params.get('category') is None:
+            return Response(
+                {"error": "Missing required query parameters: 'department' and 'category'"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         department = request.query_params.get('department', None)
         category = request.query_params.get('category', None)
         budget_allocations = BudgetAllocation.objects.filter(department=department, category=category)
