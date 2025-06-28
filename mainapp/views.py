@@ -703,7 +703,7 @@ class UserBudgetAllocationAPIView(APIView):
     def post(self, request):
         business_unit = BusinessUnit.objects.get(id=request.data.get('business_unit'))
         department = Department.objects.get(id=request.data.get('department'))
-        category = Category.objects.get(request.data.get('category'))
+        category = Category.objects.get(id = request.data.get('category'))
         amount = request.data.get('amount')
         transaction_type = request.data.get('transaction_type')
         remarks = request.data.get('remarks')
