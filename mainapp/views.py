@@ -701,8 +701,9 @@ class UserBudgetAllocationAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        department = request.data.get('department')
-        category = request.data.get('category')
+        business_unit = BusinessUnit.objects.get(id=request.data.get('business_unit'))
+        department = Department.objects.get(id=request.data.get('department'))
+        category = Category.objects.get(request.data.get('category'))
         amount = request.data.get('amount')
         transaction_type = request.data.get('transaction_type')
         remarks = request.data.get('remarks')
@@ -720,6 +721,7 @@ class UserBudgetAllocationAPIView(APIView):
 
         if not budget_allocation:
             budget_allocation = BudgetAllocation.objects.create(
+                business_unit=business_unit,
                 department=department,
                 category=category
             )
