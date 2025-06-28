@@ -225,7 +225,7 @@ class BudgetAllocationHistory(models.Model):
                 raise ValueError("Insufficient budget")
             self.budget_allocation.remaining_budget -= self.amount
         elif self.transaction_type == 'CREDIT':
-            self.budget_allocation.amount = self.amount
+            self.budget_allocation.budget = self.amount
             self.budget_allocation.remaining_budget = self.amount
         self.budget_allocation.save()
         super().save(*args, **kwargs)
