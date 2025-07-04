@@ -723,7 +723,8 @@ class UserBudgetAllocationAPIView(APIView):
             budget_allocation = BudgetAllocation.objects.create(
                 business_unit=business_unit,
                 department=department,
-                category=category
+                category=category,
+                budget=0,
             )
 
         BudgetAllocationHistory.objects.create(
