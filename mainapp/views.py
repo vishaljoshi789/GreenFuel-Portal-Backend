@@ -745,5 +745,5 @@ class UserBudgetAllocationHistoryAPIView(APIView):
         department = request.query_params.get('department', None)
         category = request.query_params.get('category', None)
         budget_allocations = BudgetAllocationHistory.objects.filter(budget_allocation__department=department, budget_allocation__category=category)
-        serializer = BudgetAllocationHistorySerializer(budget_allocations)
+        serializer = BudgetAllocationHistorySerializer(budget_allocations, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
