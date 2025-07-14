@@ -744,6 +744,11 @@ class UserBudgetAllocationHistoryAPIView(APIView):
     def get(self, request):
         department = request.query_params.get('department', None)
         category = request.query_params.get('category', None)
+        if not department or not category:
+            return Response(
+                {"error": "Missing required query parameters: 'department' and 'category'"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         budget_allocations = BudgetAllocationHistory.objects.filter(budget_allocation__department=department, budget_allocation__category=category)
         serializer = BudgetAllocationHistorySerializer(budget_allocations, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
