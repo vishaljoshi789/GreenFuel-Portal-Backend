@@ -5,6 +5,8 @@ def send_email(subject, to_email, message, html_message=None, from_email=None):
     if from_email is None:
         from_email = settings.DEFAULT_FROM_EMAIL
 
+    to_email = to_email.lower().strip()
+
     email = EmailMultiAlternatives(
         subject=subject,
         body=message,
