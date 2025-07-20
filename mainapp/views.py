@@ -360,6 +360,13 @@ class ApprovalRequestFormAPIView(APIView):
             serializer = ApprovalRequestFormSerializer(data=request.data)
             if serializer.is_valid():
                 # category_max_level = Approver.objects.filter(approver_request_category=serializer.validated_data['form_category'],department=request.user.department).aggregate(Max('level'))['level__max']
+                concerned_department = serializer.validated_data['concerned_department']
+                heirarchy = Approver.objects.filter(department=concerned_department).order_by('level')
+                if not heirarchy.exists():
+                    return Response(
+                        {"error": "No approvers found for the selected department."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
                 form_max_level = Approver.objects.filter(department=serializer.validated_data['concerned_department']).aggregate(Max('level'))['level__max']
                 form = serializer.save(user=request.user,form_max_level=form_max_level)
 
