@@ -405,10 +405,10 @@ class ApprovalRequestFormAPIView(APIView):
                 plain_message = f"""
                     Dear {approver.user.name},
 
-                    A procurement request has been submitted via the Sugamgreenfuel portal and is pending for your approval.
+                    A procurement request has been submitted via the Sugam Green Fuel portal and is pending for your approval.
 
                     Request ID: {form.budget_id}
-                    Submitted By: {form.user.name} ({form.user.email}) / {form.department.name}
+                    Submitted By: {form.user.name} ({form.user.email.lower()}) / {form.department.name}
                     Amount: {form.total}
 
                     Please review and take necessary action by logging into the system: https://sugamgreenfuel.in
@@ -416,10 +416,10 @@ class ApprovalRequestFormAPIView(APIView):
 
                 html_message = f"""
                         <p>Dear {approver.user.name},</p>
-                        <p>A procurement request has been submitted via the <strong>Sugamgreenfuel</strong> portal and is pending for your approval.</p>
+                        <p>A procurement request has been submitted via the <strong>Sugam Green Fuel</strong> portal and is pending for your approval.</p>
                         <p>
                         <strong>Request ID:</strong> {form.budget_id}<br>
-                        <strong>Submitted By:</strong> {form.user.name} ({form.user.email}) / {form.department.name}<br>
+                        <strong>Submitted By:</strong> {form.user.name} ({form.user.email.lower()}) / {form.department.name}<br>
                         <strong>Amount:</strong> {form.total}
                         </p>
                         <p>
@@ -427,6 +427,34 @@ class ApprovalRequestFormAPIView(APIView):
                         <a href="https://sugamgreenfuel.in" target="_blank">SUGHAMGREENFUEL.IN</a>
                         </p>
                     """
+                send_email(subject, to_email, plain_message, html_message)
+
+                subject = "Approval Request Submitted"
+                to_email = form.user.email
+                plain_message = f"""
+                Dear {form.user.name},
+
+                Your procurement request has been submitted successfully and is pending for approval by {approver.user.name}.
+
+                Request ID: {form.budget_id}
+                Submitted By: {form.user.name} ({form.user.email.lower()}) / {form.department.name}
+                Amount: {form.total}
+
+                Please log in to the system for more details: https://sugamgreenfuel.in
+                """
+                html_message = f"""
+                <p>Dear {form.user.name},</p>
+                <p>Your procurement request has been submitted successfully and is pending for approval by {approver.user.name}.</p>
+                <p>
+                <strong>Request ID:</strong> {form.budget_id}<br>
+                <strong>Submitted By:</strong> {form.user.name} ({form.user.email.lower()}) / {form.department.name}<br>
+                <strong>Amount:</strong> {form.total}
+                </p>
+                <p>
+                Please log in to the system for more details:
+                <a href="https://sugamgreenfuel.in" target="_blank">SUGHAMGREENFUEL.IN</a>
+                </p>
+                """
                 if send_email(subject, to_email, plain_message, html_message):
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
@@ -496,10 +524,10 @@ class ApprovalApproveRejectView(APIView):
                 plain_message = f"""
                         Dear {approver.user.name},
 
-                        A procurement request has been submitted via the Sugamgreenfuel portal and is pending for your approval.
+                        A procurement request has been submitted via the Sugam Green Fuel portal and is pending for your approval.
 
                         Request ID: {approval_request.budget_id}
-                        Submitted By: {approval_request.user.name} ({approval_request.user.email}) / {approval_request.department.name}
+                        Submitted By: {approval_request.user.name} ({approval_request.user.email.lower()}) / {approval_request.department.name}
                         Amount: {approval_request.total}
 
                         Please review and take necessary action by logging into the system: https://sugamgreenfuel.in
@@ -507,10 +535,10 @@ class ApprovalApproveRejectView(APIView):
 
                 html_message = f"""
                             <p>Dear {approver.user.name},</p>
-                            <p>A procurement request has been submitted via the <strong>Sugamgreenfuel</strong> portal and is pending for your approval.</p>
+                            <p>A procurement request has been submitted via the <strong>Sugam Green Fuel</strong> portal and is pending for your approval.</p>
                             <p>
                             <strong>Request ID:</strong> {approval_request.budget_id}<br>
-                            <strong>Submitted By:</strong> {approval_request.user.name} ({approval_request.user.email}) / {approval_request.department.name}<br>
+                            <strong>Submitted By:</strong> {approval_request.user.name} ({approval_request.user.email.lower()}) / {approval_request.department.name}<br>
                             <strong>Amount:</strong> {approval_request.total}
                             </p>
                             <p>
@@ -518,6 +546,19 @@ class ApprovalApproveRejectView(APIView):
                             <a href="https://sugamgreenfuel.in" target="_blank">SUGHAMGREENFUEL.IN</a>
                             </p>
                         """
+                send_email(subject, to_email, plain_message, html_message)
+
+                #notify user
+                subject = "Approval Request Approved"
+                to_email = approval_request.user.email
+                plain_message = f"""
+                Dear {approval_request.user.name},
+                Your approval request has been approved by {request.user.name} and is now pending for approval of {approver.user.name}.
+                """
+                html_message = f"""
+                <p>Dear {approval_request.user.name},</p>
+                <p>Your approval request has been approved by {request.user.name} and is now pending for approval of {approver.user.name}.</p>
+                """
                 if send_email(subject, to_email, plain_message, html_message):
                     return Response({"message": "Approval granted"}, status=status.HTTP_200_OK)
                 else:
@@ -536,7 +577,22 @@ class ApprovalApproveRejectView(APIView):
             )
             approval_log.save()
             approval_request.reject(rejection_reason)
-            return Response({"message": "Approval request rejected"}, status=status.HTTP_200_OK)
+            # Notify the user
+            subject = "Approval Request Rejected"
+            to_email = approval_request.user.email
+            plain_message = f"""
+            Dear {approval_request.user.name},
+            Your approval request has been rejected by {request.user.name}.
+            Rejection Reason: {rejection_reason}
+            """
+            html_message = f"""
+            <p>Dear {approval_request.user.name},</p>
+            <p>Your approval request has been rejected by {request.user.name}.</p>
+            <p><strong>Rejection Reason:</strong> {rejection_reason}</p>
+            """
+            if send_email(subject, to_email, plain_message, html_message):
+                return Response({"message": "Approval request rejected"}, status=status.HTTP_200_OK)
+            return Response({"message": "Email not sent."}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
 
