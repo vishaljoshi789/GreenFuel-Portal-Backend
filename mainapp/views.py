@@ -275,6 +275,8 @@ class ApproverAPIView(APIView):
             if department:
                 if level:
                     approvers = Approver.objects.filter(business_unit_id=business_unit, department_id=department, level=level)
+                    serializer = ApproverSerializer(approvers, many=True)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
                 else:
                     approvers = Approver.objects.filter(business_unit_id=business_unit, department_id=department)
             else:
