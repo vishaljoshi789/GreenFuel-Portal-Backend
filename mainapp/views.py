@@ -719,6 +719,11 @@ class ChatAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, form_id):
+        chats = Chat.objects.filter(form_id=form_id, read=False)
+        chats.update(read=True)
+        return Response({"message": "Chats marked as read"}, status=status.HTTP_200_OK)
 
 class ApprovalDashboardView(APIView):
     def get(self, request):
