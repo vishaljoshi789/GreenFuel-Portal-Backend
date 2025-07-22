@@ -698,8 +698,16 @@ class ChatAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        form_id = request.query_params.get("form_id")
+        form_id = request.query_params.get("form_id", None)
+        unread = request.query_params.get("unread", None)
         if form_id:
+            if unread is not None:
+                unread = unread.lower() == 'true'
+                chats = Chat.objects.filter(form_id=form_id, read=False)
+                if chats.exists():
+                    return Response({"unread_chat": True}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"unread_chat": False}, status=status.HTTP_200_OK)
             chats = Chat.objects.filter(form_id=form_id)
             serializer = ChatSerializer(chats, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
