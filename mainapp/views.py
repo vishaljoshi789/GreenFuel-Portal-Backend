@@ -307,6 +307,26 @@ class ApproverAPIView(APIView):
 
     def delete(self, request, pk):
         approver = get_object_or_404(Approver, id=pk)
+        remaining_forms = ApprovalRequestForm.objects.filter(business_unit=approver.business_unit, department=approver.department, current_form_level__lte=approver.level)
+        for form in remaining_forms:
+            form.reject("Approver deleted")
+            subject = "Approval Request Rejected"
+            to_email = form.user.email
+            plain_message = f"""
+            Dear {form.user.name},
+            Your approval request has been rejected.
+            Rejection Reason: {"Approver deleted"}
+            """
+            html_message = f"""
+            <p>Dear {form.user.name},</p>
+            <p>Your approval request has been rejected.</p>
+            <p><strong>Rejection Reason:</strong> {"Approver deleted"}</p>
+            """
+            if send_email(subject, to_email, plain_message, html_message):
+                pass
+            else:
+                print("Email not sent.")
+
         approver.delete()
         return Response({"message": "Approver deleted"}, status=status.HTTP_200_OK)
 
