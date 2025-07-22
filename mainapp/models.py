@@ -83,7 +83,6 @@ class ApprovalRequestForm(models.Model):
     status = models.CharField(max_length=255, default='Pending')
     benefit_to_organisation = models.TextField()
     approval_category = models.CharField(max_length=255)
-    approval_type = models.CharField(max_length=255)
     notify_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notify_to', null=True, blank=True)
     # form_category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
     # current_category_level = models.IntegerField(default=1)

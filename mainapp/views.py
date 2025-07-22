@@ -264,14 +264,21 @@ class ApproverAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
+        business_unit = request.query_params.get('business_unit', None)
         department = request.query_params.get('department', None)
+        level = request.query_params.get('form', None)
         if pk:
             approver = get_object_or_404(Approver, id=pk)
             serializer = ApproverSerializer(approver)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        type = request.query_params.get('type', None)
-        if department:
-            approvers = Approver.objects.filter(department_id=department)
+        if business_unit:
+            if department:
+                if level:
+                    approvers = Approver.objects.filter(business_unit_id=business_unit, department_id=department, level=level)
+                else:
+                    approvers = Approver.objects.filter(business_unit_id=business_unit, department_id=department)
+            else:
+                approvers = Approver.objects.filter(business_unit_id=business_unit)
         # elif type == 'approver':
         #     approvers = Approver.objects.filter(approver_request_category__isnull=True)
         # elif type == 'category':
