@@ -120,6 +120,20 @@ class ApprovalRequestForm(models.Model):
                 self.current_form_level = self.current_form_level + 1
                 self.status = "Approved"
                 self.current_status = "Approved"
+
+                budget = BudgetAllocation.objects.filter(
+                    business_unit=self.business_unit,
+                    department=self.department,
+                    category__name=self.approval_category
+                ).first()
+                if budget:
+                    budget_allocation_history = BudgetAllocationHistory(
+                        transaction_type='DEBIT',
+                        budget_allocation=budget,
+                        amount=self.total,
+                        remarks=f"Budget used for approval request {self.budget_id}"
+                    )
+                    budget_allocation_history.save()
         self.save()
 
     def reject(self, reason):
