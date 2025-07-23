@@ -54,6 +54,12 @@ class ApproverSerializer(serializers.ModelSerializer):
         model = Approver
         fields = '__all__'
 
+class ApproverUserSerializer(serializers.ModelSerializer):
+    user = UserInfoSerializer()
+    class Meta:
+        model = Approver
+        fields = '__all__'
+
 class ApprovalRequestFormSerializer(serializers.ModelSerializer):
     budget_id = serializers.SerializerMethodField()
 

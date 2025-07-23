@@ -15,7 +15,7 @@ import json
 from django.db.models import Max
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, NotificationSerializer, CategorySerializer, FormAttachmentSerializer, ChatSerializer, CustomTokenObtainPairSerializer, BudgetAllocationSerializer, BudgetAllocationHistorySerializer
+from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, ApproverUserSerializer, NotificationSerializer, CategorySerializer, FormAttachmentSerializer, ChatSerializer, CustomTokenObtainPairSerializer, BudgetAllocationSerializer, BudgetAllocationHistorySerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from .utils import send_email
 from datetime import datetime, date
@@ -274,8 +274,8 @@ class ApproverAPIView(APIView):
         if business_unit:
             if department:
                 if level:
-                    approvers = Approver.objects.filter(business_unit_id=business_unit, department_id=department, level=level)
-                    serializer = ApproverSerializer(approvers, many=True)
+                    approvers = Approver.objects.filter(business_unit_id=business_unit, department_id=department, level=level).first()
+                    serializer = ApproverUserSerializer(approvers)
                     return Response(serializer.data, status=status.HTTP_200_OK)
                 else:
                     approvers = Approver.objects.filter(business_unit_id=business_unit, department_id=department)
