@@ -266,7 +266,7 @@ class ApproverAPIView(APIView):
     def get(self, request, pk=None):
         business_unit = request.query_params.get('business_unit', None)
         department = request.query_params.get('department', None)
-        level = request.query_params.get('form', None)
+        level = request.query_params.get('level', None)
         if pk:
             approver = get_object_or_404(Approver, id=pk)
             serializer = ApproverSerializer(approver)
