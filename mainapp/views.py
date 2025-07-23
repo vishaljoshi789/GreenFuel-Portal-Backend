@@ -293,6 +293,12 @@ class ApproverAPIView(APIView):
     def post(self, request):
         serializer = ApproverSerializer(data=request.data)
         if serializer.is_valid():
+            if Approver.objects.filter(
+                business_unit=serializer.validated_data['business_unit'],
+                department=serializer.validated_data['department'],
+                level=serializer.validated_data['level']
+            ).exists():
+                return Response({"error": "An approver with this business unit, department, and level already exists."}, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
