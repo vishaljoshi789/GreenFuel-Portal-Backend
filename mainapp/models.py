@@ -126,6 +126,7 @@ class ApprovalRequestForm(models.Model):
                     department=self.department,
                     category__name=self.approval_category
                 ).first()
+                print(budget)
                 if budget:
                     budget_allocation_history = BudgetAllocationHistory(
                         transaction_type='DEBIT',
