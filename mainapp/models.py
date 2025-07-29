@@ -82,7 +82,8 @@ class ApprovalRequestForm(models.Model):
     concerned_department = models.ForeignKey("Department", on_delete=models.CASCADE, null=True, related_name='concerned_department')
     status = models.CharField(max_length=255, default='Pending')
     benefit_to_organisation = models.TextField()
-    approval_category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, related_name='approval_category')
+    approval_category = models.CharField(max_length=255)
+    request_category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, related_name='request_category')
     notify_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notify_to', null=True, blank=True)
     # form_category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
     # current_category_level = models.IntegerField(default=1)
@@ -101,12 +102,6 @@ class ApprovalRequestForm(models.Model):
 
 
     def advance_form_level(self):
-        budget = BudgetAllocation.objects.filter(
-                    business_unit=self.business_unit,
-                    department=self.department,
-                    category__name=self.approval_category
-                )
-        print("Budget:", budget, "business_unit:", self.business_unit, "department:", self.department, "category:", self.approval_category)
         # if self.current_category_level != 0 and self.current_category_level < self.category_max_level:
         #     self.current_category_level += 1
         # elif self.current_category_level == self.category_max_level:
