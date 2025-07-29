@@ -65,6 +65,12 @@ class ApprovalRequestFormSerializer(serializers.ModelSerializer):
 
     def get_budget_id(self, obj):
         return obj.budget_id
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and request.method == 'POST':
+            self.fields.pop('pdf', None)
 
     class Meta:
         model = ApprovalRequestForm
