@@ -404,6 +404,8 @@ class ApprovalRequestFormAPIView(APIView):
                     )
                 form_max_level = Approver.objects.filter(department=serializer.validated_data['concerned_department']).aggregate(Max('level'))['level__max']
                 form = serializer.save(user=request.user,form_max_level=form_max_level)
+                
+                print("FORM TYPE:", type(form))
 
                 items_data = request.data.getlist("items", [])
 

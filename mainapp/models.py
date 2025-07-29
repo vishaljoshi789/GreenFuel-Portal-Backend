@@ -13,7 +13,7 @@ def approval_pdf_upload_path(instance, filename):
 
 def attachment_upload_path(instance, filename):
     try:
-        user_email = instance.user.email
+        user_email = instance.form.user.email
     except Exception:
         user_email = "unknown"
     return f'attachments/{user_email}/{filename}'
