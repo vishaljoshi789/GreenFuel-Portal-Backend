@@ -491,7 +491,8 @@ class ApprovalRequestFormAPIView(APIView):
                 </p>
                 """
                 if send_email(subject, to_email, plain_message, html_message):
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                    response_serializer = ApprovalRequestFormSerializer(form, context={'request': request})
+                    return Response(response_serializer.data, status=status.HTTP_201_CREATED)
                 else:
                     return Response({"message": "Email not sent."}, status=status.HTTP_400_BAD_REQUEST)
 
