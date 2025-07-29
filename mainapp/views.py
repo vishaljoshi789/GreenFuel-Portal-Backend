@@ -496,6 +496,21 @@ class ApprovalRequestFormAPIView(APIView):
                     return Response({"message": "Email not sent."}, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def put(self, request, pk):
+        approval_request = get_object_or_404(ApprovalRequestForm, pk=pk)
+        if request.user != approval_request.user:
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+        
+        data = request.data.copy()
+        for key in data:
+            if key != 'pdf':
+                del data[key]
+        serializer = ApprovalRequestFormSerializer(approval_request, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ApprovalRequestItemAPIView(APIView):
     permission_classes = [IsAuthenticated]

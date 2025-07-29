@@ -95,6 +95,7 @@ class ApprovalRequestForm(models.Model):
     payback_period = models.CharField(max_length=255, null=True, blank=True)
     document_enclosed_summary = models.TextField(null=True, blank=True)
     current_status = models.CharField(max_length=255, default='Pending')
+    pdf = models.FileField(upload_to=lambda instance, filename: f'pdfs/{instance.user.email}/{filename}', null=True, blank=True)
 
     @property
     def budget_id(self):
@@ -149,7 +150,7 @@ class ApprovalRequestForm(models.Model):
 class FormAttachment(models.Model):
     TYPE_CHOICES = (('Asset', 'Asset'), ('Form', 'Form'))
     form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE, related_name='attachments')
-    file = models.FileField(upload_to='attachments/')
+    file = models.FileField(upload_to=lambda instance, filename: f'attachments/{instance.form.user.email}/{filename}')
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
