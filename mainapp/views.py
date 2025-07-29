@@ -404,8 +404,6 @@ class ApprovalRequestFormAPIView(APIView):
                     )
                 form_max_level = Approver.objects.filter(department=serializer.validated_data['concerned_department']).aggregate(Max('level'))['level__max']
                 form = serializer.save(user=request.user,form_max_level=form_max_level)
-                
-                print("FORM TYPE:", type(form))
 
                 items_data = request.data.getlist("items", [])
 
@@ -493,8 +491,7 @@ class ApprovalRequestFormAPIView(APIView):
                 </p>
                 """
                 if send_email(subject, to_email, plain_message, html_message):
-                    response_serializer = ApprovalRequestFormSerializer(form, context={'request': request})
-                    return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
                     return Response({"message": "Email not sent."}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -111,6 +111,7 @@ class ApprovalRequestForm(models.Model):
     current_status = models.CharField(max_length=255, default='Pending')
     pdf = models.FileField(upload_to=approval_pdf_upload_path, null=True, blank=True, default=None)
 
+    @property
     def budget_id(self):
         return str(self.id + 9999999)
 
@@ -163,7 +164,7 @@ class ApprovalRequestForm(models.Model):
 class FormAttachment(models.Model):
     TYPE_CHOICES = (('Asset', 'Asset'), ('Form', 'Form'))
     form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE, related_name='attachments')
-    file = models.FileField(upload_to='attachments/', null=True, blank=True)
+    file = models.FileField(upload_to=attachment_upload_path, null=True, blank=True)
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
