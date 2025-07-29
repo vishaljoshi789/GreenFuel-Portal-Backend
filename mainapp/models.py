@@ -101,6 +101,12 @@ class ApprovalRequestForm(models.Model):
 
 
     def advance_form_level(self):
+        budget = BudgetAllocation.objects.filter(
+                    business_unit=self.business_unit,
+                    department=self.department,
+                    category__name=self.approval_category
+                ).first()
+        print("Budget:", budget, "business_unit:", self.business_unit, "department:", self.department, "category:", self.approval_category)
         # if self.current_category_level != 0 and self.current_category_level < self.category_max_level:
         #     self.current_category_level += 1
         # elif self.current_category_level == self.category_max_level:
@@ -126,7 +132,6 @@ class ApprovalRequestForm(models.Model):
                     department=self.department,
                     category__name=self.approval_category
                 ).first()
-                print(budget)
                 if budget:
                     budget_allocation_history = BudgetAllocationHistory(
                         transaction_type='DEBIT',
