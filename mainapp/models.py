@@ -5,9 +5,15 @@ from django.db.models import Max
 from mainapp.CustomUserManager import UserManager
 
 def approval_pdf_upload_path(instance, filename):
-    return f'pdfs/{instance.user.email}/{filename}'
+    try:
+        user_email = instance.user.email
+    except Exception:
+        user_email = "unknown"
+    return f'pdfs/{user_email}/{filename}'
 
 def attachment_upload_path(instance, filename):
+    if instance.form is None or instance.form.user is None:
+        return f'attachments/unknown/{filename}'
     return f'attachments/{instance.form.user.email}/{filename}'
 
 class BusinessUnit(models.Model):
