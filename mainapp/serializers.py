@@ -63,6 +63,13 @@ class ApproverUserSerializer(serializers.ModelSerializer):
 class ApprovalRequestFormSerializer(serializers.ModelSerializer):
     budget_id = serializers.SerializerMethodField()
 
+    approval_category = CategorySerializer(read_only=True)
+    approval_category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        source='approval_category',
+        write_only=True
+    )
+
     def get_budget_id(self, obj):
         return obj.budget_id
 
