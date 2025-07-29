@@ -101,7 +101,7 @@ class ApprovalRequestForm(models.Model):
     payback_period = models.CharField(max_length=255, null=True, blank=True)
     document_enclosed_summary = models.TextField(null=True, blank=True)
     current_status = models.CharField(max_length=255, default='Pending')
-    pdf = models.FileField(upload_to=approval_pdf_upload_path, null=True, blank=True)
+    pdf = models.FileField(upload_to=approval_pdf_upload_path, null=True, blank=True, default=None)
 
     def budget_id(self):
         return str(self.id + 9999999)
