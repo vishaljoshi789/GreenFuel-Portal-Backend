@@ -125,7 +125,7 @@ class ApprovalRequestForm(models.Model):
                 budget = BudgetAllocation.objects.filter(
                     business_unit=self.business_unit,
                     department=self.department,
-                    category__name=self.approval_category
+                    category=self.request_category
                 ).first()
                 if budget:
                     budget_allocation_history = BudgetAllocationHistory(
