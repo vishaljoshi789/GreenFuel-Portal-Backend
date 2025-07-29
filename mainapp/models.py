@@ -4,6 +4,12 @@ from django.db.models import Max
 
 from mainapp.CustomUserManager import UserManager
 
+def approval_pdf_upload_path(instance, filename):
+    return f'pdfs/{instance.user.email}/{filename}'
+
+def attachment_upload_path(instance, filename):
+    return f'attachments/{instance.form.user.email}/{filename}'
+
 class BusinessUnit(models.Model):
     name = models.CharField(max_length=300)
 
@@ -95,9 +101,8 @@ class ApprovalRequestForm(models.Model):
     payback_period = models.CharField(max_length=255, null=True, blank=True)
     document_enclosed_summary = models.TextField(null=True, blank=True)
     current_status = models.CharField(max_length=255, default='Pending')
-    pdf = models.FileField(upload_to=lambda instance, filename: f'pdfs/{instance.user.email}/{filename}', null=True, blank=True)
+    pdf = models.FileField(upload_to=approval_pdf_upload_path, null=True, blank=True)
 
-    @property
     def budget_id(self):
         return str(self.id + 9999999)
 
@@ -150,7 +155,7 @@ class ApprovalRequestForm(models.Model):
 class FormAttachment(models.Model):
     TYPE_CHOICES = (('Asset', 'Asset'), ('Form', 'Form'))
     form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE, related_name='attachments')
-    file = models.FileField(upload_to=lambda instance, filename: f'attachments/{instance.form.user.email}/{filename}')
+    file = models.FileField(upload_to=attachment_upload_path, null=True, blank=True)
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
