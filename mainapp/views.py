@@ -551,6 +551,31 @@ class ApprovalApproveRejectView(APIView):
             )
             approval_log.save()
 
+            if approval_request.current_status == "Approved":
+                subject = "Action Required: CAPEX Request Awaiting Approval"
+                to_email = approval_request.user.email
+                plain_message = f"""
+                Dear {approval_request.user.name},
+                Your approval request has been approved by {request.user.name}. Your request has been approved by all the approvers.
+                """
+                html_message = f"""
+                <p>Dear {approval_request.user.name},</p>
+                <p>Your approval request has been approved by {request.user.name}. Your request has been approved by all the approvers.</p>
+                """
+                send_email(subject, to_email, plain_message, html_message)
+            if approval_request.current_status == "Pending for MD approval.":
+                subject = "Action Required: CAPEX Request Awaiting MD Approval"
+                to_email = approval_request.user.email
+                plain_message = f"""
+                Dear {approval_request.user.name},
+                Your approval request is pending for MD approval.
+                """
+                html_message = f"""
+                <p>Dear {approval_request.user.name},</p>
+                <p>Your approval request is pending for MD approval.</p>
+                """
+                send_email(subject, to_email, plain_message, html_message)
+
             #notify approver
             approver = Approver.objects.filter(department=approval_request.concerned_department, level=approval_request.current_form_level).first()
             if approver:
