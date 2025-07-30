@@ -234,8 +234,8 @@ class BudgetAllocation(models.Model):
     business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    budget = models.DecimalField(max_digits=10, decimal_places=2)
-    remaining_budget = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    budget = models.DecimalField(max_digits=15, decimal_places=2)
+    remaining_budget = models.DecimalField(max_digits=15, decimal_places=2, default=0)
 
 class BudgetAllocationHistory(models.Model):
     TRANSACTION_TYPE_CHOICES = [
