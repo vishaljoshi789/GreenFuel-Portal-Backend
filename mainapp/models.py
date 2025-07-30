@@ -244,7 +244,7 @@ class BudgetAllocationHistory(models.Model):
     ]
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPE_CHOICES)
     budget_allocation = models.ForeignKey(BudgetAllocation, on_delete=models.CASCADE, related_name='history')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
     date = models.DateTimeField(auto_now_add=True)
     remarks = models.TextField(blank=True, null=True)
 
