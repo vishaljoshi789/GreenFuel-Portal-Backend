@@ -203,7 +203,7 @@ class ApprovalRequestItem(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     quantity = models.PositiveIntegerField()
-    per_unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    per_unit_price = models.DecimalField(max_digits=15, decimal_places=2)
     sap_code = models.CharField(max_length=255)
     date = models.DateTimeField(auto_now_add=True)
     form = models.ForeignKey(ApprovalRequestForm, on_delete=models.CASCADE, related_name='items')
