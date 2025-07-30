@@ -90,7 +90,7 @@ class ApprovalRequestForm(models.Model):
     department = models.ForeignKey("Department", on_delete=models.CASCADE, null=True, related_name='department')
     designation = models.ForeignKey("Designation", on_delete=models.CASCADE, null=True)
     date = models.DateTimeField(auto_now_add=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2)
+    total = models.DecimalField(max_digits=15, decimal_places=2)
     reason = models.TextField()
     policy_agreement = models.BooleanField(default=False)
     concerned_department = models.ForeignKey("Department", on_delete=models.CASCADE, null=True, related_name='concerned_department')
