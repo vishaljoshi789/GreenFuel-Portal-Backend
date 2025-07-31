@@ -156,7 +156,7 @@ class ApprovalRequestForm(models.Model):
         self.rejected = True
         self.status = "Rejected"
         self.current_status = "Rejected"
-        self.current_form_level = 0
+        # self.current_form_level = 0
         # self.current_category_level = 0
         self.rejection_reason = reason
         self.save()
