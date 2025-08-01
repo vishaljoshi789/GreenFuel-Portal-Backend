@@ -18,8 +18,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import BusinessUnitSerializer, DepartmentSerializer, DesignationSerializer, UserInfoSerializer, ApprovalRequestFormSerializer, ApprovalRequestItemSerializer, ApprovalLogSerializer, ApproverSerializer, ApproverUserSerializer, NotificationSerializer, CategorySerializer, FormAttachmentSerializer, ChatSerializer, CustomTokenObtainPairSerializer, BudgetAllocationSerializer, BudgetAllocationHistorySerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from .utils import send_email
-from datetime import datetime, date
+from datetime import date
 from calendar import monthrange
+from rest_framework.pagination import PageNumberPagination
+
+class Pagination(PageNumberPagination):
+    page_size = 10
 
 UserModel = get_user_model()
 
@@ -384,8 +388,10 @@ class ApprovalRequestFormAPIView(APIView):
             approval_requests = ApprovalRequestForm.objects.all()
         else:
             approval_requests = ApprovalRequestForm.objects.filter(Q(user=request.user) | Q(notify_to=request.user))
-        serializer = ApprovalRequestFormSerializer(approval_requests, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        paginator = Pagination()
+        paginated_queryset = paginator.paginate_queryset(approval_requests, request)
+        serializer = ApprovalRequestFormSerializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         with transaction.atomic():
