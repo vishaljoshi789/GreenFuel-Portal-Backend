@@ -95,8 +95,15 @@ class UserInfoView(APIView):
             serializer = UserInfoSerializer(users, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         if not self_only:
-            users = User.objects.all().filter(is_deleted=False)
-            serializer = UserInfoSerializer(users, many=True)
+            users = User.objects.all().filter(is_deleted=False).order_by('-date_joined')
+            paginator = Pagination()
+            paginated_queryset = paginator.paginate_queryset(users, request)
+            if not paginated_queryset:
+                return Response(
+                    {"error": "No users found."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            serializer = UserInfoSerializer(paginated_queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UserInfoSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -385,11 +392,16 @@ class ApprovalRequestFormAPIView(APIView):
             serializer = ApprovalRequestFormSerializer(approval_request)
             return Response(serializer.data, status=status.HTTP_200_OK)
         if request.user.is_staff:
-            approval_requests = ApprovalRequestForm.objects.all()
+            approval_requests = ApprovalRequestForm.objects.all().order_by('-date')
         else:
-            approval_requests = ApprovalRequestForm.objects.filter(Q(user=request.user) | Q(notify_to=request.user))
+            approval_requests = ApprovalRequestForm.objects.filter(Q(user=request.user) | Q(notify_to=request.user)).order_by('-date')
         paginator = Pagination()
         paginated_queryset = paginator.paginate_queryset(approval_requests, request)
+        if not paginated_queryset:
+            return Response(
+                {"error": "No approval requests found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
         serializer = ApprovalRequestFormSerializer(paginated_queryset, many=True)
         return paginator.get_paginated_response(serializer.data)
 
@@ -707,10 +719,18 @@ class PendingApprovalsAPIView(APIView):
                 #     department=approver.department
                 # )
 
-            pending_forms = ApprovalRequestForm.objects.filter(query, rejected=False).distinct()
+            pending_forms = ApprovalRequestForm.objects.filter(query, rejected=False).distinct().order_by('-date')
             if request.user.role == "MD":
-                pending_forms = ApprovalRequestForm.objects.filter(current_form_level__gt=F('form_max_level'), total__gte=5000000, status="Pending for MD approval.")
-            serializer = ApprovalRequestFormSerializer(pending_forms, many=True)
+                pending_forms = ApprovalRequestForm.objects.filter(current_form_level__gt=F('form_max_level'), total__gte=5000000, status="Pending for MD approval.").order_by('-date')
+            
+            paginator = Pagination()
+            paginated_queryset = paginator.paginate_queryset(pending_forms, request)
+            if not paginated_queryset:
+                return Response(
+                    {"error": "No pending approval forms found."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            serializer = ApprovalRequestFormSerializer(paginated_queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -844,7 +864,14 @@ class UserBudgetAllocationAPIView(APIView):
 
         if request.query_params.get('all') == 'true':
             budget_allocations = BudgetAllocation.objects.all()
-            serializer = BudgetAllocationSerializer(budget_allocations, many=True)
+            paginator = Pagination()
+            paginated_queryset = paginator.paginate_queryset(budget_allocations, request)
+            if not paginated_queryset:
+                return Response(
+                    {"error": "No budget allocations found."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            serializer = BudgetAllocationSerializer(paginated_queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         if request.query_params.get('department') is None or request.query_params.get('category') is None:
@@ -855,8 +882,15 @@ class UserBudgetAllocationAPIView(APIView):
         department = request.query_params.get('department', None)
         category = request.query_params.get('category', None)
         budget_allocations = BudgetAllocation.objects.filter(department=department, category=category)
-        serializer = BudgetAllocationSerializer(budget_allocations)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        paginator = Pagination()
+        paginated_queryset = paginator.paginate_queryset(budget_allocations, request)
+        if not paginated_queryset:
+            return Response(
+                {"error": "No budget allocations found for the specified department and category."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = BudgetAllocationSerializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         business_unit = BusinessUnit.objects.get(id=request.data.get('business_unit'))
@@ -908,5 +942,17 @@ class UserBudgetAllocationHistoryAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         budget_allocations = BudgetAllocationHistory.objects.filter(budget_allocation__department=department, budget_allocation__category=category)
-        serializer = BudgetAllocationHistorySerializer(budget_allocations, many=True)
+        if not budget_allocations.exists():
+            return Response(
+                {"error": "No budget allocation history found for the specified department and category."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        paginator = Pagination()
+        paginated_queryset = paginator.paginate_queryset(budget_allocations, request)
+        if not paginated_queryset:
+            return Response(
+                {"error": "No budget allocation history found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = BudgetAllocationHistorySerializer(paginated_queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
