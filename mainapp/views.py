@@ -730,8 +730,22 @@ class PendingApprovalsAPIView(APIView):
                     {"error": "No pending approval forms found."},
                     status=status.HTTP_404_NOT_FOUND
                 )
+
             serializer = ApprovalRequestFormSerializer(paginated_queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+
+            # Count stats
+            total_count = pending_forms.count()
+            pending_count = pending_forms.filter(rejected=False, status='Pending').count()
+            approved_count = pending_forms.filter(current_status="Approved", rejected=False).count()
+            rejected_count = pending_forms.filter(rejected=True).count()
+
+            return paginator.get_paginated_response({
+                "results": serializer.data,
+                "total": total_count,
+                "pending": pending_count,
+                "approved": approved_count,
+                "rejected": rejected_count
+            })
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
