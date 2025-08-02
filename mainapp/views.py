@@ -23,7 +23,7 @@ from calendar import monthrange
 from rest_framework.pagination import PageNumberPagination
 
 class Pagination(PageNumberPagination):
-    page_size = 1
+    page_size = 10
 
 UserModel = get_user_model()
 
@@ -100,7 +100,7 @@ class UserInfoView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
             serializer = UserInfoSerializer(paginated_queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return paginator.get_paginated_response(serializer.data)
         if not self_only:
             users = User.objects.all().filter(is_deleted=False).order_by('-date_joined')
             paginator = Pagination()
@@ -111,7 +111,7 @@ class UserInfoView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
             serializer = UserInfoSerializer(paginated_queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return paginator.get_paginated_response(serializer.data)
         serializer = UserInfoSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -893,7 +893,7 @@ class UserBudgetAllocationAPIView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
             serializer = BudgetAllocationSerializer(paginated_queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return paginator.get_paginated_response(serializer.data)
 
         if request.query_params.get('department') is None or request.query_params.get('category') is None:
             return Response(
@@ -976,4 +976,4 @@ class UserBudgetAllocationHistoryAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         serializer = BudgetAllocationHistorySerializer(paginated_queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return paginator.get_paginated_response(serializer.data)
