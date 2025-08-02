@@ -23,7 +23,7 @@ from calendar import monthrange
 from rest_framework.pagination import PageNumberPagination
 
 class Pagination(PageNumberPagination):
-    page_size = 10
+    page_size = 1
 
 UserModel = get_user_model()
 
