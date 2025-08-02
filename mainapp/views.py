@@ -92,7 +92,14 @@ class UserInfoView(APIView):
         designation_id = request.query_params.get('designation', None)
         if designation_id:
             users = User.objects.filter(designation_id=designation_id)
-            serializer = UserInfoSerializer(users, many=True)
+            paginator = Pagination()
+            paginated_queryset = paginator.paginate_queryset(users, request)
+            if not paginated_queryset:
+                return Response(
+                    {"error": "No users found for the specified designation."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            serializer = UserInfoSerializer(paginated_queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         if not self_only:
             users = User.objects.all().filter(is_deleted=False).order_by('-date_joined')
